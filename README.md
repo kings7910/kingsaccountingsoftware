@@ -29,4 +29,4 @@ npm run db:test
 
 Import the GitHub repository into Vercel and configure the variables documented in `.env.example` separately for Preview and Production. Apply migrations with `supabase db push` from an authenticated deployment workflow; do not run `db:reset` against production.
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the security model and module design.
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the release checklist and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the security model and module design.
