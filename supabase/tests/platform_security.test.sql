@@ -1,5 +1,5 @@
 begin;
-select plan(6);
+select plan(8);
 
 select ok(not exists (
   select 1 from pg_catalog.pg_class c
@@ -33,6 +33,18 @@ select ok(not exists (
   where n.nspname = 'private' and p.prosecdef
     and p.proconfig is distinct from array['search_path=""']::text[]
 ), 'security-definer helpers use an empty search path');
+
+select ok(
+  has_function_privilege('authenticated', 'public.create_company_workspace(text,text)', 'EXECUTE')
+  and not has_function_privilege('anon', 'public.create_company_workspace(text,text)', 'EXECUTE'),
+  'only authenticated users can call company onboarding');
+
+select ok(exists (
+  select 1 from pg_catalog.pg_proc p
+  join pg_catalog.pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'public' and p.proname = 'create_company_workspace'
+    and p.prosecdef and p.proconfig = array['search_path=""']::text[]
+), 'company onboarding is atomic and uses an empty search path');
 
 select * from finish();
 rollback;

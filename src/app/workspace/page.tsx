@@ -17,6 +17,8 @@ export default async function WorkspacePage() {
     supabase.from("company_memberships").select("role, companies(display_name)").eq("user_id", userId).eq("is_active", true).limit(1).maybeSingle(),
   ]);
 
+  if (!membership) redirect("/onboarding");
+
   const company = Array.isArray(membership?.companies) ? membership.companies[0] : membership?.companies;
   return <AppShell authenticated assistantEnabled={Boolean(process.env.OPENAI_API_KEY)} userName={profile?.full_name || "Account user"} role={membership?.role || "member"} companyName={company?.display_name || "Your company"}/>;
 }
