@@ -4,11 +4,13 @@ A responsive accounting and trucking operations platform built with Next.js, Typ
 
 ## Local setup
 
-1. Copy `.env.example` to `.env.local` and add your Supabase project values.
+1. Copy `.env.example` to `.env.local` and add your Supabase project values. Add `OPENAI_API_KEY` to enable the AI assistant; this key is used only by the server route and must never be exposed with a `NEXT_PUBLIC_` prefix.
 2. Run `npm install`.
 3. Run `npm run dev` and open http://localhost:3000.
 
 Without Supabase credentials the interface runs in demo mode with sample company data. No production database is ever seeded automatically.
+
+The AI assistant uses OpenAI's Responses API. It is available without Supabase only during local development; production requests require a valid signed-in Supabase user.
 
 ## Commands
 

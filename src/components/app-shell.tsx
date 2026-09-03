@@ -1,13 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Bell, Building2, ChevronDown, LogOut, Menu, Plus, Search, X } from "lucide-react";
 import { navigation } from "@/lib/demo-data";
 import { createClient } from "@/lib/supabase/browser";
+import { useRouter } from "next/navigation";
 import { Dashboard } from "./dashboard/dashboard";
 import { ModuleView } from "./modules/module-view";
 
 export function AppShell({authenticated=false,userName="Kendra Williams",role="Owner",companyName="King’s Transport LLC"}:{authenticated?:boolean;userName?:string;role?:string;companyName?:string}) {
+  const router = useRouter();
   const [active, setActive] = useState("Overview");
   const [menuOpen, setMenuOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -16,6 +18,7 @@ export function AppShell({authenticated=false,userName="Kendra Williams",role="O
   const [accountOpen, setAccountOpen] = useState(false);
   const [unread, setUnread] = useState(3);
   const [quickAddRequest, setQuickAddRequest] = useState<{ module: string; id: number } | null>(null);
+  const quickAddId = useRef(0);
 
   const searchResults = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -34,14 +37,15 @@ export function AppShell({authenticated=false,userName="Kendra Williams",role="O
 
   function quickAdd(module: string) {
     setActive(module);
-    setQuickAddRequest({ module, id: Date.now() });
+    quickAddId.current += 1;
+    setQuickAddRequest({ module, id: quickAddId.current });
     setQuickAddOpen(false);
   }
 
   async function signOut() {
     const supabase = createClient();
     if (supabase) await supabase.auth.signOut();
-    window.location.assign("/login");
+    router.push("/login");
   }
 
   const initials = userName.split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0]).join("").toUpperCase() || "U";

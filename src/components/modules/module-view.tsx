@@ -6,6 +6,7 @@ import { TransactionWorkspace } from "@/components/transactions/transaction-work
 import { InvoiceWorkspace } from "@/components/invoices/invoice-workspace";
 import { LoadWorkspace } from "@/components/operations/load-workspace";
 import { FleetWorkspace } from "@/components/fleet/fleet-workspace";
+import { AssistantWorkspace } from "@/components/assistant/assistant-workspace";
 
 const moduleCopy:Record<string,{eyebrow:string;title:string;description:string;action:string}> = {
   Transactions:{eyebrow:"Money movement",title:"Income & expenses",description:"Review, categorize, split, match, and approve every transaction.",action:"Add transaction"},
@@ -21,15 +22,16 @@ const moduleCopy:Record<string,{eyebrow:string;title:string;description:string;a
   "Team & roles":{eyebrow:"Access control",title:"Team & roles",description:"Give each person exactly the access their work requires.",action:"Invite person"},
   "Audit log":{eyebrow:"Accountability",title:"Audit history",description:"A durable timeline of sensitive actions and financial changes.",action:"Export log"},
   Settings:{eyebrow:"Company administration",title:"Settings",description:"Manage companies, categories, yearly rates, integrations, and preferences.",action:"Save changes"},
+  "AI assistant":{eyebrow:"OpenAI powered",title:"Accounting assistant",description:"Get practical help with bookkeeping workflows and trucking operations.",action:"Ask a question"},
 };
 
 export function ModuleView({module,openForm=false}:{module:string;openForm?:boolean}) {
   const copy=moduleCopy[module]??moduleCopy.Transactions;
   const [showForm,setShowForm]=useState(openForm);
   return <div className="mx-auto max-w-[1600px] p-4 md:p-7 xl:p-9">
-    <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="mb-1 text-sm font-bold text-[var(--teal)]">{copy.eyebrow}</p><h1 className="display text-3xl font-extrabold text-[var(--navy)] md:text-4xl">{copy.title}</h1><p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">{copy.description}</p></div><button onClick={()=>setShowForm(true)} className="flex w-fit items-center gap-2 rounded-xl bg-[var(--teal)] px-4 py-3 text-sm font-bold text-white"><Plus size={18}/>{copy.action}</button></div>
-    {module==="Loads & routes"?<LoadWorkspace openCreate={showForm} onCreateClosed={()=>setShowForm(false)}/>:module==="Fleet"?<FleetWorkspace openCreate={showForm} onCreateClosed={()=>setShowForm(false)}/>:module==="Fuel & mileage"?<FuelMileage/>:module==="Reports"?<Reports/>:module==="Team & roles"?<Team/>:module==="Transactions"?<TransactionWorkspace openCreate={showForm} onCreateClosed={()=>setShowForm(false)}/>:module==="Invoices"?<InvoiceWorkspace openCreate={showForm} onCreateClosed={()=>setShowForm(false)}/>:<Generic module={module}/>} 
-    {showForm&&!(["Transactions","Invoices","Loads & routes","Fleet"].includes(module))&&<QuickForm title={copy.action} module={module} onClose={()=>setShowForm(false)}/>} 
+    <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="mb-1 text-sm font-bold text-[var(--teal)]">{copy.eyebrow}</p><h1 className="display text-3xl font-extrabold text-[var(--navy)] md:text-4xl">{copy.title}</h1><p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">{copy.description}</p></div>{module!=="AI assistant"&&<button onClick={()=>setShowForm(true)} className="flex w-fit items-center gap-2 rounded-xl bg-[var(--teal)] px-4 py-3 text-sm font-bold text-white"><Plus size={18}/>{copy.action}</button>}</div>
+    {module==="AI assistant"?<AssistantWorkspace/>:module==="Loads & routes"?<LoadWorkspace openCreate={showForm} onCreateClosed={()=>setShowForm(false)}/>:module==="Fleet"?<FleetWorkspace openCreate={showForm} onCreateClosed={()=>setShowForm(false)}/>:module==="Fuel & mileage"?<FuelMileage/>:module==="Reports"?<Reports/>:module==="Team & roles"?<Team/>:module==="Transactions"?<TransactionWorkspace openCreate={showForm} onCreateClosed={()=>setShowForm(false)}/>:module==="Invoices"?<InvoiceWorkspace openCreate={showForm} onCreateClosed={()=>setShowForm(false)}/>:<Generic module={module}/>}
+    {showForm&&!(["Transactions","Invoices","Loads & routes","Fleet","AI assistant"].includes(module))&&<QuickForm title={copy.action} module={module} onClose={()=>setShowForm(false)}/>}
   </div>;
 }
 
