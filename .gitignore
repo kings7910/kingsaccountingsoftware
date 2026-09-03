@@ -11,3 +11,4 @@ coverage/
 *.log
 supabase/.temp/
 supabase/.branches/
+.vercel/
