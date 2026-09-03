@@ -1,0 +1,2 @@
+import {describe,expect,it} from "vitest";import {demoLoads,loadMargin,nextLoadNumber,validateLoad} from "@/lib/operations";
+describe("dispatch workflows",()=>{it("numbers loads sequentially",()=>expect(nextLoadNumber(demoLoads)).toBe("LD-2842"));it("estimates contribution margin",()=>expect(loadMargin(demoLoads[0])).toBe(2500.82));it("rejects reversed appointments",()=>expect(validateLoad({...demoLoads[0],deliveryOn:"2026-09-01"}).deliveryOn).toBeTruthy())});

@@ -1,0 +1,12 @@
+{
+  "name": "King’s Accounting Software",
+  "short_name": "King’s",
+  "description": "Accounting and trucking operations in one secure workspace.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f7f8",
+  "theme_color": "#092d3d",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
