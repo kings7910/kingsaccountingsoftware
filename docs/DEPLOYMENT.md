@@ -13,7 +13,7 @@ The recommended production path is GitHub to Vercel with a hosted Supabase proje
    - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
    - `NEXT_PUBLIC_APP_URL`
    - `OPENAI_API_KEY`
-   - `OPENAI_MODEL=gpt-5.6-terra`
+   - `OPENAI_MODEL=gpt-5-mini`
 6. Deploy the `main` branch.
 
 Never add secret values to Git, screenshots, client code, or variables prefixed with `NEXT_PUBLIC_`.

@@ -18,5 +18,5 @@ export default async function WorkspacePage() {
   ]);
 
   const company = Array.isArray(membership?.companies) ? membership.companies[0] : membership?.companies;
-  return <AppShell authenticated userName={profile?.full_name || "Account user"} role={membership?.role || "member"} companyName={company?.display_name || "Your company"}/>;
+  return <AppShell authenticated assistantEnabled={Boolean(process.env.OPENAI_API_KEY)} userName={profile?.full_name || "Account user"} role={membership?.role || "member"} companyName={company?.display_name || "Your company"}/>;
 }

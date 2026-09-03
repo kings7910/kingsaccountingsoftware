@@ -6,10 +6,14 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 
 const money = new Intl.NumberFormat("en-US", { style:"currency", currency:"USD", maximumFractionDigits:0 });
 
-export function Dashboard({onNavigate}:{onNavigate:(value:string)=>void}) {
+export function Dashboard({userName,onNavigate}:{userName:string;onNavigate:(value:string)=>void}) {
+  const firstName=userName.trim().split(/\s+/)[0]||"there";
+  const today=new Intl.DateTimeFormat("en-US",{weekday:"long",month:"long",day:"numeric"}).format(new Date());
+  const hour=new Date().getHours();
+  const greeting=hour<12?"Good morning":hour<18?"Good afternoon":"Good evening";
   return <div className="mx-auto max-w-[1600px] p-4 md:p-7 xl:p-9">
     <section className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-      <div><p className="mb-1 text-sm font-semibold text-[var(--teal)]">Thursday, September 3</p><h1 className="display text-3xl font-extrabold text-[var(--navy)] md:text-4xl">Good morning, Kendra.</h1><p className="mt-2 text-sm text-[var(--muted)]">Here’s what’s happening across your business.</p></div>
+      <div><p className="mb-1 text-sm font-semibold text-[var(--teal)]">{today}</p><h1 className="display text-3xl font-extrabold text-[var(--navy)] md:text-4xl">{greeting}, {firstName}.</h1><p className="mt-2 text-sm text-[var(--muted)]">Here’s what’s happening across your business.</p></div>
       <button className="flex w-fit items-center gap-2 rounded-xl border border-[var(--line)] bg-white px-4 py-2.5 text-sm font-bold text-[var(--navy)]"><CalendarDays size={17}/> This month <ChevronDown size={15}/></button>
     </section>
 

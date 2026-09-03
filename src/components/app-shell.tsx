@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { Dashboard } from "./dashboard/dashboard";
 import { ModuleView } from "./modules/module-view";
 
-export function AppShell({authenticated=false,userName="Kendra Williams",role="Owner",companyName="King’s Transport LLC"}:{authenticated?:boolean;userName?:string;role?:string;companyName?:string}) {
+export function AppShell({authenticated=false,assistantEnabled=false,userName="Kendra Williams",role="Owner",companyName="King’s Transport LLC"}:{authenticated?:boolean;assistantEnabled?:boolean;userName?:string;role?:string;companyName?:string}) {
   const router = useRouter();
   const [active, setActive] = useState("Overview");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -78,7 +78,7 @@ export function AppShell({authenticated=false,userName="Kendra Williams",role="O
           {quickAddOpen&&<div className="absolute right-0 top-[calc(100%+12px)] z-50 w-64 overflow-hidden rounded-2xl border border-[var(--line)] bg-white p-2 shadow-xl"><p className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-[var(--muted)]">Create a record</p>{[["Transaction","Transactions"],["Invoice","Invoices"],["Load","Loads & routes"],["Fuel entry","Fuel & mileage"],["Work order","Maintenance"]].map(([label,target])=><button key={label} onClick={()=>quickAdd(target)} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-bold hover:bg-[var(--canvas)]"><span className="grid size-8 place-items-center rounded-lg bg-[var(--teal-light)] text-[var(--teal)]"><Plus size={15}/></span>{label}</button>)}</div>}
         </div>
       </header>
-      {active === "Overview" ? <Dashboard onNavigate={navigate}/> : <ModuleView key={`${active}-${quickAddRequest?.id??"view"}`} module={active} openForm={quickAddRequest?.module===active}/>} 
+      {active === "Overview" ? <Dashboard userName={userName} onNavigate={navigate}/> : <ModuleView key={`${active}-${quickAddRequest?.id??"view"}`} module={active} openForm={quickAddRequest?.module===active} assistantEnabled={assistantEnabled}/>}
     </main>
   </div>;
 }

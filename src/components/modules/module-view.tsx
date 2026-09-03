@@ -25,12 +25,12 @@ const moduleCopy:Record<string,{eyebrow:string;title:string;description:string;a
   "AI assistant":{eyebrow:"OpenAI powered",title:"Accounting assistant",description:"Get practical help with bookkeeping workflows and trucking operations.",action:"Ask a question"},
 };
 
-export function ModuleView({module,openForm=false}:{module:string;openForm?:boolean}) {
+export function ModuleView({module,openForm=false,assistantEnabled=false}:{module:string;openForm?:boolean;assistantEnabled?:boolean}) {
   const copy=moduleCopy[module]??moduleCopy.Transactions;
   const [showForm,setShowForm]=useState(openForm);
   return <div className="mx-auto max-w-[1600px] p-4 md:p-7 xl:p-9">
     <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="mb-1 text-sm font-bold text-[var(--teal)]">{copy.eyebrow}</p><h1 className="display text-3xl font-extrabold text-[var(--navy)] md:text-4xl">{copy.title}</h1><p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">{copy.description}</p></div>{module!=="AI assistant"&&<button onClick={()=>setShowForm(true)} className="flex w-fit items-center gap-2 rounded-xl bg-[var(--teal)] px-4 py-3 text-sm font-bold text-white"><Plus size={18}/>{copy.action}</button>}</div>
-    {module==="AI assistant"?<AssistantWorkspace/>:module==="Loads & routes"?<LoadWorkspace openCreate={showForm} onCreateClosed={()=>setShowForm(false)}/>:module==="Fleet"?<FleetWorkspace openCreate={showForm} onCreateClosed={()=>setShowForm(false)}/>:module==="Fuel & mileage"?<FuelMileage/>:module==="Reports"?<Reports/>:module==="Team & roles"?<Team/>:module==="Transactions"?<TransactionWorkspace openCreate={showForm} onCreateClosed={()=>setShowForm(false)}/>:module==="Invoices"?<InvoiceWorkspace openCreate={showForm} onCreateClosed={()=>setShowForm(false)}/>:<Generic module={module}/>}
+    {module==="AI assistant"?<AssistantWorkspace enabled={assistantEnabled}/>:module==="Loads & routes"?<LoadWorkspace openCreate={showForm} onCreateClosed={()=>setShowForm(false)}/>:module==="Fleet"?<FleetWorkspace openCreate={showForm} onCreateClosed={()=>setShowForm(false)}/>:module==="Fuel & mileage"?<FuelMileage/>:module==="Reports"?<Reports/>:module==="Team & roles"?<Team/>:module==="Transactions"?<TransactionWorkspace openCreate={showForm} onCreateClosed={()=>setShowForm(false)}/>:module==="Invoices"?<InvoiceWorkspace openCreate={showForm} onCreateClosed={()=>setShowForm(false)}/>:<Generic module={module}/>}
     {showForm&&!(["Transactions","Invoices","Loads & routes","Fleet","AI assistant"].includes(module))&&<QuickForm title={copy.action} module={module} onClose={()=>setShowForm(false)}/>}
   </div>;
 }
