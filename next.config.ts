@@ -2,7 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
-  experimental: { optimizePackageImports: ["lucide-react", "recharts"] },
+  experimental: {
+    optimizePackageImports: ["lucide-react", "recharts"],
+    useTypeScriptCli: false,
+  },
   async headers() {
     return [{
       source: "/(.*)",
