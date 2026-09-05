@@ -18,13 +18,13 @@ export function can(role: Role, permission: string) {
 
 const moduleGrants:Record<Role,readonly string[]>={
   owner:["*"],
-  administrator:["Overview","Transactions","Invoices","Loads & routes","Fleet","Fuel & mileage","Maintenance","Payroll","Accounting","Reports","Approvals","Team & roles","Audit log","Settings","AI assistant"],
-  accountant:["Overview","Transactions","Invoices","Fuel & mileage","Accounting","Reports","Approvals","AI assistant"],
+  administrator:["Overview","Transactions","Invoices","Bills & payables","Loads & routes","Fleet","Fuel & mileage","Maintenance","Payroll","Accounting","Reports","Approvals","Team & roles","Audit log","Settings","AI assistant"],
+  accountant:["Overview","Transactions","Invoices","Bills & payables","Fuel & mileage","Accounting","Reports","Approvals","AI assistant"],
   dispatcher:["Overview","Invoices","Loads & routes","Fleet","Fuel & mileage","Maintenance","Approvals","AI assistant"],
   fleet_manager:["Overview","Loads & routes","Fleet","Fuel & mileage","Maintenance","Approvals","AI assistant"],
   payroll_manager:["Overview","Payroll","Approvals","AI assistant"],
   driver:[],
-  auditor:["Overview","Accounting","Reports","Audit log","AI assistant"],
+  auditor:["Overview","Bills & payables","Accounting","Reports","Audit log","AI assistant"],
 };
 
 export function visibleModules(role:string){const normalized=roles.includes(role as Role)?role as Role:"auditor";return moduleGrants[normalized]}

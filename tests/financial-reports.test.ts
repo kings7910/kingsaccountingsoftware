@@ -1,5 +1,5 @@
 import {describe,expect,it} from "vitest";
-import {ledgerReports,LedgerJournal,reportRange,receivableAging} from "@/lib/financial-reports";
+import {ledgerReports,LedgerJournal,reportRange,receivableAging,payableAging} from "@/lib/financial-reports";
 const range=reportRange("September 2026");
 const journal=(id:string,date:string,debit:string,credit:string,value:number):LedgerJournal=>({id,entry_date:date,status:"posted",lines:[{debit:value,credit:0,account:{account_number:debit,name:debit,account_type:debit.startsWith("5")?"expense":"asset"}},{debit:0,credit:value,account:{account_number:credit,name:credit,account_type:credit.startsWith("4")?"income":credit.startsWith("3")?"equity":credit.startsWith("2")?"liability":"asset"}}]});
 const fixtures=[journal("capital","2026-07-01","1000","3000",1000),journal("aug-income","2026-08-10","1000","4000",200),journal("income","2026-09-10","1000","4000",300),journal("expense","2026-09-11","5000","1000",50)];
@@ -55,4 +55,13 @@ describe("receivable aging",()=>{
  it("reconstructs an invoice paid after the report period",()=>expect(receivableAging([{...invoice,status:"paid",payments:[{received_on:"2026-10-10",amount:100}]}],"2026-10-01")).toEqual([100,0,0,0]));
  it("excludes draft invoices",()=>expect(receivableAging([{...invoice,status:"draft"}],"2026-10-01")).toEqual([0,0,0,0]));
  it("rejects ambiguous historical paid status",()=>expect(()=>receivableAging([{...invoice,status:"paid"}],"2026-10-01")).toThrow("dated payment"));
+});
+
+describe("payable aging",()=>{
+ const bill={issued_on:"2026-07-01",due_on:"2026-07-31",status:"open",amount:100,payments:[] as {paid_on:string;amount:number}[]};
+ it("places unpaid bills into buckets using their due dates",()=>expect(payableAging([bill],"2026-10-01")).toEqual([0,0,0,100]));
+ it("deducts only payments made by the report date",()=>expect(payableAging([{...bill,payments:[{paid_on:"2026-09-01",amount:35},{paid_on:"2026-10-01",amount:20}]}],"2026-10-01")).toEqual([0,0,0,65]));
+ it("reconstructs bills paid after the report period",()=>expect(payableAging([{...bill,status:"paid",payments:[{paid_on:"2026-10-10",amount:100}]}],"2026-10-01")).toEqual([0,0,0,100]));
+ it("excludes draft and void bills",()=>expect(payableAging([{...bill,status:"draft"},{...bill,status:"void"}],"2026-10-01")).toEqual([0,0,0,0]));
+ it("rejects a paid status without dated allocations",()=>expect(()=>payableAging([{...bill,status:"paid"}],"2026-10-01")).toThrow("dated payment"));
 });

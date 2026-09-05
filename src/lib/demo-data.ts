@@ -1,7 +1,7 @@
-import { Banknote, Bot, Boxes, ChartNoAxesCombined, ClipboardList, FileText, Fuel, LayoutDashboard, ReceiptText, Route, Settings, ShieldCheck, Truck, Users, Wrench } from "lucide-react";
+import { Banknote, Bot, Boxes, ChartNoAxesCombined, CircleDollarSign, ClipboardList, FileText, Fuel, LayoutDashboard, ReceiptText, Route, Settings, ShieldCheck, Truck, Users, Wrench } from "lucide-react";
 
 export const navigation = [
-  { label:"Overview", icon:LayoutDashboard }, { label:"Transactions", icon:ReceiptText }, { label:"Invoices", icon:FileText },
+  { label:"Overview", icon:LayoutDashboard }, { label:"Transactions", icon:ReceiptText }, { label:"Invoices", icon:FileText }, { label:"Bills & payables", icon:CircleDollarSign },
   { label:"Loads & routes", icon:Route }, { label:"Fleet", icon:Truck }, { label:"Fuel & mileage", icon:Fuel },
   { label:"Maintenance", icon:Wrench }, { label:"Payroll", icon:Banknote }, { label:"Accounting", icon:Boxes },
   { label:"Reports", icon:ChartNoAxesCombined }, { label:"Approvals", icon:ClipboardList }, { label:"Team & roles", icon:Users },

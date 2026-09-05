@@ -1,0 +1,17 @@
+export const vendorBillStatuses=["Draft","Open","Paid","Void"] as const;
+export type VendorBillStatus=(typeof vendorBillStatuses)[number];
+export type VendorBillPayment={id:string;paidOn:string;amount:number;reference:string};
+export type VendorBill={id:string;vendor:string;billNumber:string;issuedOn:string;dueOn:string;status:VendorBillStatus;amount:number;description:string;payments:VendorBillPayment[]};
+export type VendorBillDraft=Omit<VendorBill,"id"|"payments">;
+export type VendorBillPaymentDraft={paidOn:string;amount:number;reference:string};
+
+export const demoVendorBills:VendorBill[]=[
+ {id:"bill-1",vendor:"Pilot Travel Center",billNumber:"PILOT-0826",issuedOn:"2026-08-25",dueOn:"2026-09-24",status:"Open",amount:2480,description:"August fuel card statement",payments:[]},
+ {id:"bill-2",vendor:"Martin Fleet Services",billNumber:"MFS-4412",issuedOn:"2026-08-03",dueOn:"2026-09-02",status:"Paid",amount:1285,description:"Unit 118 service",payments:[{id:"payment-1",paidOn:"2026-09-02",amount:1285,reference:"ACH 8841"}]},
+];
+
+const money=(value:number)=>{const cents=Math.round(value*100);if(!Number.isSafeInteger(cents))throw new Error("Amount is invalid or too large.");return cents};
+export function billOutstanding(bill:Pick<VendorBill,"amount"|"payments">){return Math.max(0,money(bill.amount)-bill.payments.reduce((total,payment)=>total+money(payment.amount),0))/100}
+export function validateVendorBill(draft:VendorBillDraft){const errors:Record<string,string>={};if(!draft.vendor.trim())errors.vendor="Enter a vendor.";if(!draft.billNumber.trim())errors.billNumber="Enter the vendor bill number.";if(!draft.issuedOn)errors.issuedOn="Choose an issue date.";if(!draft.dueOn)errors.dueOn="Choose a due date.";if(draft.issuedOn&&draft.dueOn<draft.issuedOn)errors.dueOn="Due date cannot be before the issue date.";if(!Number.isFinite(draft.amount)||draft.amount<=0)errors.amount="Amount must be greater than zero.";return errors}
+export function validateVendorBillPayment(draft:VendorBillPaymentDraft,outstanding:number){const errors:Record<string,string>={};if(!draft.paidOn)errors.paidOn="Choose a payment date.";if(!Number.isFinite(draft.amount)||draft.amount<=0)errors.amount="Payment must be greater than zero.";else if(Math.round(draft.amount*100)>Math.round(outstanding*100))errors.amount="Payment cannot exceed the outstanding balance.";return errors}
+export function filterVendorBills(bills:VendorBill[],query:string,status:string){const term=query.trim().toLowerCase();return bills.filter(bill=>(status==="All statuses"||bill.status===status)&&(!term||[bill.vendor,bill.billNumber,bill.description].some(value=>value.toLowerCase().includes(term))))}
