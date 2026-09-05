@@ -1,0 +1,40 @@
+name: Database and browser verification
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
+      - name: Start isolated database and apply migrations
+        run: npm run db:start
+      - name: Database tests
+        run: npm run db:test
+      - name: Database function and security checks
+        run: |
+          npx supabase db lint --local --level error
+          npx supabase db advisors --local --type all --level warn --fail-on error
+      - name: Prepare local browser configuration
+        run: npx supabase status -o json > "$RUNNER_TEMP/kings-local-supabase.json"
+      - name: Browser workflows
+        run: npm run test:e2e
+        env:
+          KINGS_TEST_CONFIG: ${{ runner.temp }}/kings-local-supabase.json
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-test-results
+          path: test-results/
+          retention-days: 3

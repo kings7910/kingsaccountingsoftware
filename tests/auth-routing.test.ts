@@ -6,6 +6,7 @@ describe("auth route decisions", () => {
   it("protects nested workspace routes", () => expect(authRedirect("/workspace/reports", false)).toBe("/login"));
   it("protects onboarding", () => expect(authRedirect("/onboarding", false)).toBe("/login"));
   it("protects password updates", () => expect(authRedirect("/reset-password", false)).toBe("/login"));
+  it("protects the driver portal", () => expect(authRedirect("/driver", false)).toBe("/login"));
   it("keeps public demo routes available", () => expect(authRedirect("/", false)).toBeNull());
   it("keeps login available to signed-out users", () => expect(authRedirect("/login", false)).toBeNull());
   it("moves authenticated users past login", () => expect(authRedirect("/login", true)).toBe("/workspace"));

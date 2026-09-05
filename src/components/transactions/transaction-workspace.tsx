@@ -3,28 +3,33 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { CircleDollarSign, Download, Pencil, Search, Trash2, X } from "lucide-react";
 import { demoTransactions, filterTransactions, Transaction, TransactionDraft, transactionStatuses, transactionsToCsv, validateTransaction } from "@/lib/transactions";
+import { deleteTransaction, listTransactions, saveTransaction } from "@/app/actions/transactions";
 
 const storageKey="kings-transactions-v1";
 const blankDraft:TransactionDraft={occurredOn:new Date().toISOString().slice(0,10),payee:"",description:"",amount:0,kind:"expense",status:"Needs review"};
 const currency=new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"});
 const dateFormat=new Intl.DateTimeFormat("en-US",{month:"short",day:"numeric",year:"numeric",timeZone:"UTC"});
 
-export function TransactionWorkspace({openCreate,onCreateClosed}:{openCreate:boolean;onCreateClosed:()=>void}){
+export function TransactionWorkspace({openCreate,onCreateClosed,companyId}:{openCreate:boolean;onCreateClosed:()=>void;userId?:string;companyId?:string}){
   const [records,setRecords]=useState<Transaction[]>(demoTransactions);
   const [loaded,setLoaded]=useState(false);
   const [query,setQuery]=useState("");
   const [status,setStatus]=useState("All statuses");
   const [editing,setEditing]=useState<Transaction|null>(null);
+  const [error,setError]=useState("");
+  const [busy,setBusy]=useState(false);
 
-  useEffect(()=>{try{const saved=localStorage.getItem(storageKey);if(saved)setRecords(JSON.parse(saved) as Transaction[])}catch{}setLoaded(true)},[]);
-  useEffect(()=>{if(loaded)localStorage.setItem(storageKey,JSON.stringify(records))},[loaded,records]);
+  useEffect(()=>{if(companyId){setBusy(true);listTransactions(companyId).then(setRecords).catch(cause=>setError(cause instanceof Error?cause.message:"Unable to load transactions.")).finally(()=>{setLoaded(true);setBusy(false)});return}try{const saved=localStorage.getItem(storageKey);if(saved)setRecords(JSON.parse(saved) as Transaction[])}catch{}setLoaded(true)},[companyId]);
+  useEffect(()=>{if(loaded&&!companyId)localStorage.setItem(storageKey,JSON.stringify(records))},[loaded,records,companyId]);
   const filtered=useMemo(()=>filterTransactions(records,query,status),[records,query,status]);
 
-  function save(draft:TransactionDraft,id?:string){setRecords(current=>id?current.map(record=>record.id===id?{...draft,id}:record):[{...draft,id:crypto.randomUUID()},...current]);setEditing(null);onCreateClosed()}
-  function remove(record:Transaction){if(window.confirm(`Delete the transaction from ${record.payee}?`))setRecords(current=>current.filter(item=>item.id!==record.id))}
+  async function save(draft:TransactionDraft,id?:string){setError("");if(companyId){setBusy(true);try{const saved=await saveTransaction(companyId,draft,id);setRecords(current=>id?current.map(record=>record.id===id?saved:record):[saved,...current])}catch(cause){setError(cause instanceof Error?cause.message:"Unable to save transaction.");return}finally{setBusy(false)}}else setRecords(current=>id?current.map(record=>record.id===id?{...draft,id}:record):[{...draft,id:crypto.randomUUID()},...current]);setEditing(null);onCreateClosed()}
+  async function remove(record:Transaction){if(!window.confirm(`Delete the transaction from ${record.payee}?`))return;setError("");if(companyId){setBusy(true);try{await deleteTransaction(companyId,record.id)}catch(cause){setError(cause instanceof Error?cause.message:"Unable to delete transaction.");return}finally{setBusy(false)}}setRecords(current=>current.filter(item=>item.id!==record.id))}
   function exportCsv(){const url=URL.createObjectURL(new Blob([transactionsToCsv(filtered)],{type:"text/csv;charset=utf-8"}));const link=document.createElement("a");link.href=url;link.download="kings-transactions.csv";link.click();URL.revokeObjectURL(url)}
 
   return <>
+    {error&&<p role="alert" className="mb-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</p>}
+    {busy&&<p role="status" className="mb-3 text-xs font-bold text-[var(--teal)]">Syncing secure workspace data…</p>}
     <div className="flex flex-wrap gap-2"><div className="relative min-w-[220px] flex-1"><Search size={17} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]"/><input value={query} onChange={event=>setQuery(event.target.value)} aria-label="Search transactions" className="w-full rounded-xl border border-[var(--line)] py-2.5 pl-10 pr-9 text-sm" placeholder="Search transactions…"/>{query&&<button aria-label="Clear search" onClick={()=>setQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-[var(--muted)]"><X size={15}/></button>}</div><select aria-label="Filter transactions by status" value={status} onChange={event=>setStatus(event.target.value)} className="rounded-xl border border-[var(--line)] bg-white px-3.5 text-sm font-bold"><option>All statuses</option>{transactionStatuses.map(value=><option key={value}>{value}</option>)}</select><button disabled={!filtered.length} onClick={exportCsv} className="flex items-center gap-2 rounded-xl border border-[var(--line)] bg-white px-3.5 text-sm font-bold disabled:opacity-45"><Download size={16}/>Export</button></div>
     <p aria-live="polite" className="mt-3 text-xs font-semibold text-[var(--muted)]">Showing {filtered.length} of {records.length} transactions</p>
     <div className="card mt-3 overflow-hidden"><div className="grid grid-cols-[1fr_auto] gap-3 border-b border-[var(--line)] bg-[var(--canvas)] px-5 py-3 text-xs font-bold uppercase tracking-wider text-[var(--muted)]"><span>Transaction</span><span>Amount</span></div>{filtered.length?filtered.map(record=><div className="group flex items-center gap-4 border-b border-[var(--line)] p-4 last:border-0 md:px-5" key={record.id}><div className={`grid size-10 shrink-0 place-items-center rounded-xl ${record.kind==="income"?"bg-[var(--teal-light)] text-[var(--teal)]":"bg-[#eef2f3] text-[var(--navy)]"}`}><CircleDollarSign size={18}/></div><div className="min-w-0 flex-1"><div className="truncate font-bold">{record.payee}</div><div className="truncate text-xs text-[var(--muted)]">{dateFormat.format(new Date(`${record.occurredOn}T00:00:00Z`))} · {record.description}</div></div><span className="hidden pill bg-[#eef6f5] text-[var(--teal)] sm:inline-flex">{record.status}</span><strong className={record.kind==="income"?"text-[var(--teal)]":""}>{record.kind==="income"?"+":"−"}{currency.format(record.amount)}</strong><div className="flex"><button aria-label={`Edit ${record.payee}`} onClick={()=>setEditing(record)} className="rounded-lg p-2 text-[var(--muted)] hover:bg-[var(--canvas)] hover:text-[var(--teal)]"><Pencil size={16}/></button><button aria-label={`Delete ${record.payee}`} onClick={()=>remove(record)} className="rounded-lg p-2 text-[var(--muted)] hover:bg-red-50 hover:text-red-600"><Trash2 size={16}/></button></div></div>):<div className="p-10 text-center"><Search className="mx-auto text-[var(--muted)]"/><h2 className="mt-3 font-extrabold text-[var(--navy)]">No transactions found</h2><p className="mt-1 text-sm text-[var(--muted)]">Try a different search or status.</p><button onClick={()=>{setQuery("");setStatus("All statuses")}} className="mt-4 text-sm font-bold text-[var(--teal)]">Clear filters</button></div>}</div>

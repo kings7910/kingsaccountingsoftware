@@ -1,0 +1,14 @@
+begin;select plan(7);
+insert into auth.users(id,aud,role,email,encrypted_password,raw_app_meta_data,raw_user_meta_data) values('00000000-0000-0000-0000-000000000031','authenticated','authenticated','fleet@test.local','','{}','{}'),('00000000-0000-0000-0000-000000000032','authenticated','authenticated','fleet-driver@test.local','','{}','{}');
+insert into public.companies(id,legal_name,display_name,created_by) values('10000000-0000-0000-0000-000000000031','Fleet Test LLC','Fleet Test','00000000-0000-0000-0000-000000000031');
+insert into public.company_memberships(company_id,user_id,role) values('10000000-0000-0000-0000-000000000031','00000000-0000-0000-0000-000000000031','owner'),('10000000-0000-0000-0000-000000000031','00000000-0000-0000-0000-000000000032','driver');
+set local role authenticated;set local request.jwt.claim.sub='00000000-0000-0000-0000-000000000031';
+select lives_ok($$select public.save_vehicle('10000000-0000-0000-0000-000000000031',null,'Truck','204',2022,'Freightliner','Cascadia','VIN204',168240,175000,'active')$$,'owner creates truck and schedule');
+select is((select count(*) from public.trucks where company_id='10000000-0000-0000-0000-000000000031'),1::bigint,'truck created');
+select is((select next_due_odometer from public.maintenance_schedules where company_id='10000000-0000-0000-0000-000000000031'),175000::numeric,'service mileage preserved');
+select lives_ok($$select public.save_vehicle('10000000-0000-0000-0000-000000000031',null,'Trailer','48',2020,'Great Dane','Everest','',0,0,'active')$$,'owner creates trailer');
+select lives_ok($$select public.delete_vehicle('10000000-0000-0000-0000-000000000031',(select id from public.trailers where company_id='10000000-0000-0000-0000-000000000031'),'Trailer')$$,'owner deletes vehicle atomically');
+select is((select count(*) from public.trailers where company_id='10000000-0000-0000-0000-000000000031'),0::bigint,'deleted trailer is removed');
+set local request.jwt.claim.sub='00000000-0000-0000-0000-000000000032';
+select throws_ok($$select public.save_vehicle('10000000-0000-0000-0000-000000000031',null,'Truck','999',2022,'Make','Model','',0,0,'active')$$,'P0001','Fleet access required','driver cannot create fleet assets');
+select * from finish();rollback;

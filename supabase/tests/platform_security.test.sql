@@ -42,9 +42,13 @@ select ok(
 select ok(exists (
   select 1 from pg_catalog.pg_proc p
   join pg_catalog.pg_namespace n on n.oid = p.pronamespace
-  where n.nspname = 'public' and p.proname = 'create_company_workspace'
+  where n.nspname = 'private' and p.proname = 'create_company_workspace'
     and p.prosecdef and p.proconfig = array['search_path=""']::text[]
-), 'company onboarding is atomic and uses an empty search path');
+ ) and exists (
+  select 1 from pg_catalog.pg_proc p join pg_catalog.pg_namespace n on n.oid=p.pronamespace
+  where n.nspname='public' and p.proname='create_company_workspace' and not p.prosecdef
+    and p.proconfig=array['search_path=""']::text[]
+), 'company onboarding uses a private privileged implementation and safe public wrapper');
 
 select * from finish();
 rollback;

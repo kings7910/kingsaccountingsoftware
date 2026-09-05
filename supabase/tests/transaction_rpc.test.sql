@@ -1,0 +1,12 @@
+begin;select plan(6);
+insert into auth.users(id,email) values('00000000-0000-0000-0000-000000000401','transaction-owner@test.local');
+insert into public.companies(id,legal_name,display_name,created_by) values('10000000-0000-0000-0000-000000000401','Transactions','Transactions','00000000-0000-0000-0000-000000000401');
+insert into public.company_memberships(company_id,user_id,role) values('10000000-0000-0000-0000-000000000401','00000000-0000-0000-0000-000000000401','owner');
+set local role authenticated;set local request.jwt.claim.sub='00000000-0000-0000-0000-000000000401';
+select lives_ok($$select public.save_transaction('10000000-0000-0000-0000-000000000401',null,null,'expense','2026-09-01','Vendor','Original transaction',100,'pending')$$,'expense saves atomically');
+select throws_ok($$select public.save_transaction('10000000-0000-0000-0000-000000000401',(select id from public.expenses where company_id='10000000-0000-0000-0000-000000000401'),'expense','income','2026-09-01','Failed customer','Invalid oversized replacement',1000000000000000000,'posted')$$,'22003',null,'replacement failure rolls back entire transaction');
+select is((select amount from public.expenses where company_id='10000000-0000-0000-0000-000000000401'),100.00::numeric,'original transaction survives failed type change');
+select is((select count(*) from public.customers where company_id='10000000-0000-0000-0000-000000000401'),0::bigint,'failed partner creation also rolls back');
+select lives_ok($$select public.save_transaction('10000000-0000-0000-0000-000000000401',(select id from public.expenses where company_id='10000000-0000-0000-0000-000000000401'),'expense','income','2026-09-01','Customer','Corrected income',100,'posted')$$,'valid type change succeeds');
+select is((select count(*) from public.expenses where company_id='10000000-0000-0000-0000-000000000401'),0::bigint,'old row removed only after successful replacement');
+select * from finish();rollback;
