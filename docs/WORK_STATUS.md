@@ -31,6 +31,6 @@ The original hosted baseline SQL matches the repository baseline. New hosted mig
 
 ## Hosted release state
 
-The first 23 repository migrations are applied to hosted Supabase project `mwguntuwtzrxmtudejhn`, including A/P ledger posting, unpaid-bill reversals, and vendor credit/debit adjustments. The locally verified bank statement reconciliation migration is awaiting hosted application. Hosted security and performance advisors report no warnings or errors; informational notices remain for private deny-by-default storage, foreign-key indexes and newly unused indexes. No hosted users or business records were created by release testing.
+The hosted Supabase project `mwguntuwtzrxmtudejhn` includes A/P ledger posting, unpaid-bill reversals, vendor credit/debit adjustments, and the bank statement reconciliation workflow. Hosted security and performance advisors report no warnings or errors; informational notices remain for private deny-by-default storage, older foreign-key indexes and newly unused indexes. No hosted users or business records were created by release testing.
 
 The release branch is published through GitHub pull request 1. The vendor-adjustment phase is deployed as Vercel production deployment `dpl_CB9fSyeTCzW8HyMxg1YX2orwABja` at `https://kings-accounting-software-two.vercel.app`; its live health endpoint reports database and authentication ready. Deployment Protection currently requires Vercel authentication to access the application. Team invitations and AI remain disabled until their server-only keys are configured.
