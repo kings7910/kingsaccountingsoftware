@@ -30,6 +30,6 @@ The original hosted baseline SQL matches the repository baseline. New hosted mig
 
 ## Hosted release state
 
-The first 21 repository migrations are applied to hosted Supabase project `mwguntuwtzrxmtudejhn`. The clean-tested A/P ledger-posting migration remains local pending explicit production-schema authorization. Hosted security and performance advisors reported no warnings or errors at the last deployment; informational notices remain for private deny-by-default storage of submission IDs and database indexes. No hosted users or business records were created by release testing.
+All 22 repository migrations are applied to hosted Supabase project `mwguntuwtzrxmtudejhn`, including A/P ledger posting and unpaid-bill reversals. Hosted security and performance advisors report no warnings or errors; informational notices remain for private deny-by-default storage, foreign-key indexes and newly unused indexes. No hosted users or business records were created by release testing.
 
 The currently hosted release is published through GitHub pull request 1 and deployed at `https://kings-accounting-software-two.vercel.app`; its live health endpoint reports database and authentication ready. The new A/P ledger phase has not yet been pushed or deployed. Deployment Protection currently requires Vercel authentication to access the application. Team invitations and AI remain disabled until their server-only keys are configured.
