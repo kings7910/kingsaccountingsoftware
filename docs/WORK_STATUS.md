@@ -4,22 +4,24 @@ Updated September 6, 2026.
 
 ## Implemented core workflows
 
-The authenticated workspace now persists transactions, invoices, vendor bills and payments, loads, fleet, fuel, maintenance, driver settlements, journals, approvals, settings, team roles and notifications. The driver portal supports offline submissions with server-side retry deduplication. Approvals update their linked source records atomically. Tenant references, active membership checks, posted-journal immutability, paid-invoice protections, and vendor-payment immutability are enforced in the database.
+The authenticated workspace now persists transactions, bank statement imports and reconciliations, invoices, vendor bills and payments, loads, fleet, fuel, maintenance, driver settlements, journals, approvals, settings, team roles and notifications. The driver portal supports offline submissions with server-side retry deduplication. Approvals update their linked source records atomically. Tenant references, active membership checks, posted-journal immutability, paid-invoice protections, vendor-payment immutability, and completed-reconciliation locks are enforced in the database.
 
 Financial reports use posted ledger entries and dated receivable/payable allocations. Loading failures are visible and unavailable reports cannot be exported as stale or demonstration data. Marking an invoice paid records its outstanding balance as received that day. Vendor bills select an expense account, post bills against A/P account 2000, post each payment against a selected cash or bank account, and support dated partial payments. Immutable vendor credit/debit adjustments post separate journals, reopen balances when required, preserve overpayments as vendor credits, and reconcile historical A/P aging to the ledger. Unadjusted, unpaid posted bills can be voided through an atomic reversing journal.
 
+Finance users can link checking or savings accounts to active asset ledger accounts and upload bank CSV files without retaining the source file. Imports accept Amount or Debit/Credit layouts, enforce a 1 MB and 1,000-row limit, and deduplicate stable statement rows. Review requires an exact signed amount match to a posted journal containing the linked bank ledger. A period can only be completed when every imported row is resolved and the statement closing balance equals the cumulative posted book balance; completion locks the reconciliation and its rows.
+
 ## Release verification
 
-- Node 22: lint, TypeScript and 148 unit tests across 24 files pass.
-- A clean local database rebuild passes 211 SQL tests across 20 files.
+- Node 22: lint, TypeScript and 152 unit tests across 24 files pass.
+- A clean local database rebuild passes 242 SQL tests across 21 files.
 - Database function lint and security/performance advisors report no findings.
-- Production build and all three browser workflows pass: protected routing; owner onboarding, live modules, journal posting, financial reporting and outage recovery; mobile driver offline fuel synchronization and office approval.
+- Production build and all four browser workflows pass: protected routing; owner onboarding, live modules, journal posting, financial reporting and outage recovery; mobile driver offline fuel synchronization and office approval; bank CSV import, ledger matching, reconciliation and locking.
 - CI now repeats application, database and browser verification.
 
 ## Remaining product and operational scope
 
 - Team invitations require the server-only SUPABASE_SERVICE_ROLE_KEY in Vercel. AI requires OPENAI_API_KEY. Neither secret was configured at the release check; keys must never be pasted into source or client variables.
-- Bank feeds, payment processing, receipt OCR and automatic payroll tax filing require separate integrations. Configuration placeholders do not provide those services.
+- Live bank feeds, payment processing, receipt OCR and automatic payroll tax filing require separate integrations. Manual bank CSV import and reconciliation work without a feed provider.
 - Production email delivery, recovery redirects, backups and a restore rehearsal must be verified before real financial records are onboarded.
 - Browser tests use isolated local accounts. Hosted email delivery and third-party integrations are not covered by those tests.
 
@@ -29,6 +31,6 @@ The original hosted baseline SQL matches the repository baseline. New hosted mig
 
 ## Hosted release state
 
-All 23 repository migrations are applied to hosted Supabase project `mwguntuwtzrxmtudejhn`, including A/P ledger posting, unpaid-bill reversals, and vendor credit/debit adjustments. Hosted security and performance advisors report no warnings or errors; informational notices remain for private deny-by-default storage, foreign-key indexes and newly unused indexes. No hosted users or business records were created by release testing.
+The first 23 repository migrations are applied to hosted Supabase project `mwguntuwtzrxmtudejhn`, including A/P ledger posting, unpaid-bill reversals, and vendor credit/debit adjustments. The locally verified bank statement reconciliation migration is awaiting hosted application. Hosted security and performance advisors report no warnings or errors; informational notices remain for private deny-by-default storage, foreign-key indexes and newly unused indexes. No hosted users or business records were created by release testing.
 
 The release branch is published through GitHub pull request 1. The vendor-adjustment phase is deployed as Vercel production deployment `dpl_CB9fSyeTCzW8HyMxg1YX2orwABja` at `https://kings-accounting-software-two.vercel.app`; its live health endpoint reports database and authentication ready. Deployment Protection currently requires Vercel authentication to access the application. Team invitations and AI remain disabled until their server-only keys are configured.

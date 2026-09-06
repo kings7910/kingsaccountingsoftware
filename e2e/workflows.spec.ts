@@ -155,3 +155,41 @@ test("driver offline fuel synchronizes once and owner approval updates the sourc
  const {data:fuel}=await admin.from("fuel_entries").select("status").eq("load_id",load.id).single();
  expect(fuel?.status).toBe("approved");
 });
+
+test("owner imports, matches, and locks a bank statement reconciliation",async({page})=>{
+ const owner=await createUser("Bank Reconciliation Owner");
+ const company=await insert("companies",{legal_name:"Bank Browser Test",display_name:"Bank Browser Test",created_by:owner.id});
+ await insert("company_memberships",{company_id:company.id,user_id:owner.id,role:"owner"});
+ const cash=await insert("chart_of_accounts",{company_id:company.id,account_number:"1000",name:"Operating cash",account_type:"asset"});
+ const equity=await insert("chart_of_accounts",{company_id:company.id,account_number:"3000",name:"Opening equity",account_type:"equity"});
+ const fuel=await insert("chart_of_accounts",{company_id:company.id,account_number:"5000",name:"Fuel expense",account_type:"expense"});
+ async function postedJournal(number:number,date:string,memo:string,lines:{account_id:string;debit:number;credit:number;description:string}[]){
+  const journal=await insert("journal_entries",{company_id:company.id,entry_number:number,entry_date:date,memo,status:"draft",created_by:owner.id});
+  const{error:lineError}=await admin.from("journal_lines").insert(lines.map(line=>({...line,company_id:company.id,journal_entry_id:journal.id})));if(lineError)throw lineError;
+  const{error:postError}=await admin.from("journal_entries").update({status:"posted"}).eq("id",journal.id);if(postError)throw postError;
+ }
+ await postedJournal(9201,"2026-09-01","Browser opening balance",[{account_id:cash.id,debit:1000,credit:0,description:"Deposit"},{account_id:equity.id,debit:0,credit:1000,description:"Equity"}]);
+ await postedJournal(9202,"2026-09-05","Browser fuel payment",[{account_id:fuel.id,debit:100,credit:0,description:"Fuel"},{account_id:cash.id,debit:0,credit:100,description:"Withdrawal"}]);
+ await login(page,owner.email);await expect(page).toHaveURL(/\/workspace/);
+ await page.getByRole("navigation",{name:"Primary navigation"}).getByRole("button",{name:"Transactions",exact:true}).click();
+ await expect(page.getByRole("heading",{name:"Statement reconciliation"})).toBeVisible();
+ await page.getByLabel("Account name").fill("Operating checking");
+ await page.getByLabel("Asset ledger account").selectOption({label:"1000 · Operating cash"});
+ await page.getByRole("button",{name:"Link account"}).click();
+ await expect(page.getByLabel("Bank account")).toContainText("Operating checking");
+ await page.getByLabel("CSV statement").setInputFiles({name:"september.csv",mimeType:"text/csv",buffer:Buffer.from("Date,Description,Amount,Reference\n2026-09-01,Opening deposit,1000,OPEN-1\n2026-09-05,Fuel withdrawal,-100,FUEL-1")});
+ await page.getByRole("button",{name:"Import and deduplicate"}).click();
+ await expect(page.getByText("2 imported; 0 duplicates skipped.")).toBeVisible();
+ await page.getByLabel("Journal match for Opening deposit").selectOption({label:"JE-9201 · 2026-09-01 · Browser opening balance"});
+ await page.getByRole("button",{name:"Match Opening deposit"}).click();
+ await expect(page.getByText("Statement row matched.")).toBeVisible();
+ await page.getByLabel("Journal match for Fuel withdrawal").selectOption({label:"JE-9202 · 2026-09-05 · Browser fuel payment"});
+ await page.getByRole("button",{name:"Match Fuel withdrawal"}).click();
+ await page.getByLabel("Starts").fill("2026-09-01");await page.getByLabel("Ends").fill("2026-09-30");await page.getByLabel("Closing balance").fill("900");
+ await page.getByRole("button",{name:"Calculate difference"}).click();
+ await expect(page.getByText("$0.00",{exact:true})).toBeVisible();
+ await page.getByRole("button",{name:"Complete and lock"}).click();
+ await expect(page.getByText("completed",{exact:true})).toBeVisible();
+ const{data:reconciliation,error}=await admin.from("reconciliations").select("status,locked_at,rows:imported_transactions(count)").eq("company_id",company.id).single();if(error)throw error;
+ expect(reconciliation.status).toBe("completed");expect(reconciliation.locked_at).toBeTruthy();expect(reconciliation.rows[0].count).toBe(2);
+});
