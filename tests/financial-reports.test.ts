@@ -1,5 +1,5 @@
 import {describe,expect,it} from "vitest";
-import {ledgerAccountCreditBalance,ledgerReports,LedgerJournal,reportRange,receivableAging,payableAging} from "@/lib/financial-reports";
+import {ledgerAccountCreditBalance,ledgerReports,LedgerJournal,reportRange,receivableAging,payableAging,payableCredits} from "@/lib/financial-reports";
 const range=reportRange("September 2026");
 const journal=(id:string,date:string,debit:string,credit:string,value:number):LedgerJournal=>({id,entry_date:date,status:"posted",lines:[{debit:value,credit:0,account:{account_number:debit,name:debit,account_type:debit.startsWith("5")?"expense":"asset"}},{debit:0,credit:value,account:{account_number:credit,name:credit,account_type:credit.startsWith("4")?"income":credit.startsWith("3")?"equity":credit.startsWith("2")?"liability":"asset"}}]});
 const fixtures=[journal("capital","2026-07-01","1000","3000",1000),journal("aug-income","2026-08-10","1000","4000",200),journal("income","2026-09-10","1000","4000",300),journal("expense","2026-09-11","5000","1000",50)];
@@ -62,10 +62,12 @@ describe("receivable aging",()=>{
 });
 
 describe("payable aging",()=>{
- const bill={issued_on:"2026-07-01",due_on:"2026-07-31",status:"open",amount:100,payments:[] as {paid_on:string;amount:number}[]};
+ const bill={issued_on:"2026-07-01",due_on:"2026-07-31",status:"open",amount:100,payments:[] as {paid_on:string;amount:number}[],adjustments:[] as {adjusted_on:string;adjustment_type:string;amount:number}[]};
  it("places unpaid bills into buckets using their due dates",()=>expect(payableAging([bill],"2026-10-01")).toEqual([0,0,0,100]));
  it("deducts only payments made by the report date",()=>expect(payableAging([{...bill,payments:[{paid_on:"2026-09-01",amount:35},{paid_on:"2026-10-01",amount:20}]}],"2026-10-01")).toEqual([0,0,0,65]));
  it("reconstructs bills paid after the report period",()=>expect(payableAging([{...bill,status:"paid",payments:[{paid_on:"2026-10-10",amount:100}]}],"2026-10-01")).toEqual([0,0,0,100]));
+ it("applies only adjustments dated before the report boundary",()=>expect(payableAging([{...bill,adjustments:[{adjusted_on:"2026-09-01",adjustment_type:"credit",amount:30},{adjusted_on:"2026-10-01",adjustment_type:"debit",amount:20}]}],"2026-10-01")).toEqual([0,0,0,70]));
+ it("reports overpaid balances as vendor credits",()=>expect(payableCredits([{...bill,status:"paid",payments:[{paid_on:"2026-09-01",amount:100}],adjustments:[{adjusted_on:"2026-09-02",adjustment_type:"credit",amount:25}]}],"2026-10-01")).toBe(25));
  it("excludes draft and void bills",()=>expect(payableAging([{...bill,status:"draft"},{...bill,status:"void"}],"2026-10-01")).toEqual([0,0,0,0]));
- it("rejects a paid status without dated allocations",()=>expect(()=>payableAging([{...bill,status:"paid"}],"2026-10-01")).toThrow("dated payment"));
+ it("rejects a paid status without dated allocations",()=>expect(()=>payableAging([{...bill,status:"paid"}],"2026-10-01")).toThrow("dated payments"));
 });

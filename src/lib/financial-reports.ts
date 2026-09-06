@@ -100,18 +100,27 @@ export function receivableAging(invoices:ReceivableInvoice[],exclusiveEnd:string
 export type PayableBill = {
   issued_on:string;due_on:string;status:string;amount:number|string;
   payments:{paid_on:string;amount:number|string}[];
+  adjustments:{adjusted_on:string;adjustment_type:string;amount:number|string}[];
 };
+function payableBalanceAt(bill:PayableBill,exclusiveEnd:string){
+  const adjusted=cents(bill.amount)+bill.adjustments.filter(item=>item.adjusted_on<exclusiveEnd).reduce((sum,item)=>sum+(item.adjustment_type==="debit"?cents(item.amount):-cents(item.amount)),0);
+  const payments=bill.payments.filter(payment=>payment.paid_on<exclusiveEnd).reduce((sum,payment)=>sum+cents(payment.amount),0);
+  return adjusted-payments;
+}
+function assertPayableHistory(bill:PayableBill){
+  const adjusted=cents(bill.amount)+bill.adjustments.reduce((sum,item)=>sum+(item.adjustment_type==="debit"?cents(item.amount):-cents(item.amount)),0);
+  const allocated=bill.payments.reduce((sum,payment)=>sum+cents(payment.amount),0);
+  if(bill.status==="paid"&&allocated<adjusted)throw new Error("Some vendor bills were marked paid without enough dated payments or adjustments. Complete those records before generating historical A/P aging.");
+}
 export function payableAging(bills:PayableBill[],exclusiveEnd:string) {
   const buckets=[0,0,0,0];
   for(const bill of bills) {
     if(["draft","void","cancelled"].includes(bill.status)||bill.issued_on>=exclusiveEnd)continue;
-    const total=cents(bill.amount);
-    const allAllocated=bill.payments.reduce((sum,payment)=>sum+cents(payment.amount),0);
-    if(bill.status==="paid"&&allAllocated<total)throw new Error("Some vendor bills were marked paid without dated payment records. Record those payments before generating historical A/P aging.");
-    const payments=bill.payments.filter(payment=>payment.paid_on<exclusiveEnd).reduce((sum,payment)=>sum+cents(payment.amount),0);
-    const outstanding=Math.max(0,total-payments);
+    assertPayableHistory(bill);
+    const outstanding=Math.max(0,payableBalanceAt(bill,exclusiveEnd));
     const days=Math.floor((Date.parse(exclusiveEnd)-86400000-Date.parse(bill.due_on))/86400000);
     buckets[days<=0?0:days<=30?1:days<=60?2:3]+=outstanding;
   }
   return buckets.map(value=>value/100);
 }
+export function payableCredits(bills:PayableBill[],exclusiveEnd:string){let credits=0;for(const bill of bills){if(["draft","void","cancelled"].includes(bill.status)||bill.issued_on>=exclusiveEnd)continue;assertPayableHistory(bill);credits+=Math.max(0,-payableBalanceAt(bill,exclusiveEnd))}return credits/100}
