@@ -1,3 +1,4 @@
+-- Immutable vendor credits and debits with atomic A/P ledger posting.
 create table public.vendor_bill_adjustments (
   id uuid primary key default gen_random_uuid(),
   company_id uuid not null references public.companies(id) on delete cascade,
