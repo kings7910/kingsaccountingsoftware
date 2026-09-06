@@ -3,7 +3,7 @@
 import {createClient} from "@/lib/supabase/server";
 import {reports,ReportDefinition,ReportRow} from "@/lib/reports";
 
-import {ledgerReports,LedgerJournal,reportRange,receivableAging,ReceivableInvoice,payableAging,PayableBill} from "@/lib/financial-reports";
+import {ledgerAccountCreditBalance,ledgerReports,LedgerJournal,reportRange,receivableAging,ReceivableInvoice,payableAging,PayableBill} from "@/lib/financial-reports";
 const inRange=(date:string,start:string,end:string)=>date>=start&&date<end;
 const sum=(rows:any[],field:string)=>rows.reduce((total,row)=>total+Number(row[field]??0),0);
 const row=(label:string,current:number,previous:number,emphasis?:ReportRow["emphasis"],format?:ReportRow["format"]):ReportRow=>({label,current,previous,emphasis,format});
@@ -25,9 +25,10 @@ export async function loadReports(companyId:string,period:string):Promise<Report
  let ar=[0,0,0,0],prevAr=[0,0,0,0],ap=[0,0,0,0],prevAp=[0,0,0,0],agingError="",payableError="";
  try{ar=receivableAging(invoices as ReceivableInvoice[],range.end);prevAr=receivableAging(invoices as ReceivableInvoice[],range.previousEnd)}catch(cause){agingError=cause instanceof Error?cause.message:"A/R aging could not be calculated."}
  try{ap=payableAging(bills as PayableBill[],range.end);prevAp=payableAging(bills as PayableBill[],range.previousEnd)}catch(cause){payableError=cause instanceof Error?cause.message:"A/P aging could not be calculated."}
+ const payableTotal=ap.reduce((total,value)=>total+value,0),previousPayableTotal=prevAp.reduce((total,value)=>total+value,0),ledgerPayable=ledgerAccountCreditBalance(journals as LedgerJournal[],"2000",range.end),previousLedgerPayable=ledgerAccountCreditBalance(journals as LedgerJournal[],"2000",range.previousEnd);
  const dynamic:Record<string,ReportRow[]>={
   "ar-aging":["Current","1–30 days","31–60 days","61+ days"].map((label,i)=>row(label,ar[i],prevAr[i])).concat(row("Total receivables",sum(ar.map(total=>({total})),"total"),sum(prevAr.map(total=>({total})),"total"),"total")),
-  "ap-aging":["Current","1–30 days","31–60 days","61+ days"].map((label,i)=>row(label,ap[i],prevAp[i])).concat(row("Total payables",sum(ap.map(total=>({total})),"total"),sum(prevAp.map(total=>({total})),"total"),"total")),
+  "ap-aging":["Current","1–30 days","31–60 days","61+ days"].map((label,i)=>row(label,ap[i],prevAp[i])).concat([row("A/P subledger total",payableTotal,previousPayableTotal,"subtotal"),row("Ledger control · account 2000",ledgerPayable,previousLedgerPayable),row("Reconciliation difference",payableTotal-ledgerPayable,previousPayableTotal-previousLedgerPayable,"total")]),
   "profit-truck":[...new Set([...truckCurrent.keys(),...truckPrevious.keys()])].map(x=>row(`Unit ${x}`,truckCurrent.get(x)??0,truckPrevious.get(x)??0)).concat(row("Fleet contribution",sum([...truckCurrent.values()].map(total=>({total})),"total"),sum([...truckPrevious.values()].map(total=>({total})),"total"),"total")),
   "profit-driver":[...new Set([...driverCurrent.keys(),...driverPrevious.keys()])].map(x=>row(x,driverCurrent.get(x)??0,driverPrevious.get(x)??0)).concat(row("Driver contribution",sum([...driverCurrent.values()].map(total=>({total})),"total"),sum([...driverPrevious.values()].map(total=>({total})),"total"),"total")),
   "cost-mile":[row("Fuel per mile",miles[0]?fuelCost[0]/miles[0]:0,miles[1]?fuelCost[1]/miles[1]:0),row("Driver pay per mile",miles[0]?driverPay[0]/miles[0]:0,miles[1]?driverPay[1]/miles[1]:0),row("Maintenance per mile",miles[0]?maintenance[0]/miles[0]:0,miles[1]?maintenance[1]/miles[1]:0),row("Total tracked cost per mile",miles[0]?(fuelCost[0]+driverPay[0]+maintenance[0])/miles[0]:0,miles[1]?(fuelCost[1]+driverPay[1]+maintenance[1])/miles[1]:0,"total")],

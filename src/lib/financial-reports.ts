@@ -35,6 +35,8 @@ const cents = (value: number|string) => {
 };
 const amountRow = (label: string, current: number, previous: number, emphasis?: ReportRow["emphasis"]): ReportRow => ({label,current:current===0?0:current/100,previous:previous===0?0:previous/100,emphasis});
 
+export function ledgerAccountCreditBalance(journals:LedgerJournal[],accountNumber:string,exclusiveEnd:string){let balance=0;for(const journal of journals){if(journal.status!=="posted"||journal.entry_date>=exclusiveEnd)continue;for(const line of journal.lines){const account=Array.isArray(line.account)?line.account[0]:line.account;if(account?.account_number===accountNumber)balance+=cents(line.credit)-cents(line.debit)}}return balance/100}
+
 export function ledgerReports(journals: LedgerJournal[], range: ReportRange): Record<string, Pick<ReportDefinition,"rows">> {
   function balances(start: string, end: string) {
     const accounts = new Map<string, Account & { balance: number }>();

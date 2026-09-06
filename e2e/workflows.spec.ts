@@ -60,9 +60,13 @@ test("owner onboarding, live modules, journal posting and ledger reports",async(
  await page.getByLabel("Description",{exact:true}).fill("Release verification bill");
  await page.getByRole("button",{name:"Save bill",exact:true}).click();
  await expect(page.getByText("RRS-9001",{exact:false})).toBeVisible();
+ await expect(page.getByText(/Posted JE-/)).toBeVisible();
+ await nav.getByRole("button",{name:"Accounting",exact:true}).click();
+ await expect(page.getByText(/Vendor bill RRS-9001/)).toBeVisible();
  await nav.getByRole("button",{name:"Reports",exact:true}).click();
  await page.getByRole("button",{name:/A\/P aging/}).click();
  await expect(page.getByRole("row").filter({hasText:"61+ days"})).toContainText("$640.00");
+ await expect(page.getByRole("row").filter({hasText:"Reconciliation difference"})).toContainText("$0.00");
  await page.getByRole("button",{name:"All reports",exact:true}).click();
  await page.getByRole("button",{name:/Balance sheet/}).click();
  await expect(page.getByRole("row").filter({hasText:"Total assets"})).toContainText("$250.00");
@@ -77,6 +81,12 @@ test("owner onboarding, live modules, journal posting and ledger reports",async(
  await page.unroute("**/workspace");
  await page.getByRole("button",{name:"Retry",exact:true}).click();
  await expect(page.getByRole("button",{name:"Export CSV"})).toBeVisible();
+ await nav.getByRole("button",{name:"Bills & payables",exact:true}).click();
+ page.once("dialog",dialog=>dialog.accept());
+ await page.getByRole("button",{name:"Void RRS-9001",exact:true}).click();
+ await expect(page.locator(".card").filter({hasText:"RRS-9001"}).getByText("Void",{exact:true})).toBeVisible();
+ await nav.getByRole("button",{name:"Accounting",exact:true}).click();
+ await expect(page.getByText("Void vendor bill RRS-9001",{exact:true})).toBeVisible();
 });
 
 test("driver offline fuel synchronizes once and owner approval updates the source",async({page,context,browser})=>{

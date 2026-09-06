@@ -21,7 +21,7 @@ import { PayablesWorkspace } from "@/components/payables/payables-workspace";
 const moduleCopy:Record<string,{eyebrow:string;title:string;description:string;action:string}> = {
   Transactions:{eyebrow:"Money movement",title:"Income & expenses",description:"Review, categorize, split, match, and approve every transaction.",action:"Add transaction"},
   Invoices:{eyebrow:"Accounts receivable",title:"Invoices & payments",description:"Send polished invoices and keep every payment accounted for.",action:"New invoice"},
-  "Bills & payables":{eyebrow:"Accounts payable",title:"Bills & payments",description:"Track vendor due dates, partial payments, and outstanding balances.",action:"New vendor bill"},
+  "Bills & payables":{eyebrow:"Accounts payable",title:"Bills & payments",description:"Track vendor balances and post bills and payments to the ledger.",action:"New vendor bill"},
   "Loads & routes":{eyebrow:"Dispatch",title:"Loads & routes",description:"Coordinate each shipment from pickup appointment to proof of delivery.",action:"Create load"},
   Fleet:{eyebrow:"Equipment",title:"Fleet command",description:"Keep trucks, trailers, documents, and utilization in one place.",action:"Add vehicle"},
   "Fuel & mileage":{eyebrow:"Operating costs",title:"Fuel & mileage",description:"Understand MPG, cost per mile, and every mile driven.",action:"Record fuel"},

@@ -1,5 +1,5 @@
 import {describe,expect,it} from "vitest";
-import {ledgerReports,LedgerJournal,reportRange,receivableAging,payableAging} from "@/lib/financial-reports";
+import {ledgerAccountCreditBalance,ledgerReports,LedgerJournal,reportRange,receivableAging,payableAging} from "@/lib/financial-reports";
 const range=reportRange("September 2026");
 const journal=(id:string,date:string,debit:string,credit:string,value:number):LedgerJournal=>({id,entry_date:date,status:"posted",lines:[{debit:value,credit:0,account:{account_number:debit,name:debit,account_type:debit.startsWith("5")?"expense":"asset"}},{debit:0,credit:value,account:{account_number:credit,name:credit,account_type:credit.startsWith("4")?"income":credit.startsWith("3")?"equity":credit.startsWith("2")?"liability":"asset"}}]});
 const fixtures=[journal("capital","2026-07-01","1000","3000",1000),journal("aug-income","2026-08-10","1000","4000",200),journal("income","2026-09-10","1000","4000",300),journal("expense","2026-09-11","5000","1000",50)];
@@ -38,6 +38,10 @@ describe("financial report integrity",()=>{
  });
  it("rejects non-finite report amounts",()=>{
   expect(()=>ledgerReports([journal("bad","2026-09-01","1000","4000",Infinity)],range)).toThrow("invalid");
+ });
+ it("reconstructs the A/P control balance as of the report boundary",()=>{
+  const entries=[journal("bill","2026-09-01","5000","2000",100),journal("payment","2026-09-15","2000","1000",35),journal("future","2026-10-01","2000","1000",65)];
+  expect(ledgerAccountCreditBalance(entries,"2000","2026-10-01")).toBe(65);
  });
  it("compares full past years against a full previous year",()=>{
   expect(reportRange("Year 2025")).toEqual({start:"2025-01-01",end:"2026-01-01",previousStart:"2024-01-01",previousEnd:"2025-01-01"});
