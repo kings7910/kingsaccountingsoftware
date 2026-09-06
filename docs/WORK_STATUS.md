@@ -20,6 +20,12 @@ The visible workspace navigation now matches each role's server permissions. Dis
 - Production build and all six browser workflows pass: protected routing; public demo navigation, quick actions, forms, accessible controls and sign-in links; dispatcher and fleet-manager role controls; owner onboarding, live modules, journal posting, financial reporting and outage recovery; mobile driver offline fuel synchronization and office approval; bank CSV import, ledger matching, reconciliation and locking.
 - CI now repeats application, database and browser verification.
 
+## Offline recovery follow-up
+
+Offline navigations now show a standalone recovery page with a retry control and guidance for queued driver submissions. The service worker caches only public offline assets, removes its older shell caches, and leaves account pages, API responses, and Server Component payloads uncached. Registration failures no longer cause unhandled promise rejections. Existing driver submission storage and synchronization are unchanged.
+
+Local verification: 163 unit tests across 26 files, TypeScript, lint and the production build pass. Browser checks confirm the public demo loads without page errors, a 390px mobile offline page has no horizontal overflow, and retrying after the server returns reaches sign-in for the protected driver route. This follow-up has not been deployed to production.
+
 ## Remaining product and operational scope
 
 - Team invitations require the server-only SUPABASE_SERVICE_ROLE_KEY in Vercel. AI requires OPENAI_API_KEY. Neither secret was configured at the release check; keys must never be pasted into source or client variables.

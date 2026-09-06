@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#092d3d">
+    <title>You’re offline | King’s Accounting</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 24px; background: #092d3d; color: #092d3d; font-family: system-ui, sans-serif; }
+      main { width: 100%; max-width: 460px; padding: 36px; border-radius: 24px; background: #fff; }
+      .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; }
+      .mark { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: #edba65; font-size: 24px; }
+      h1 { margin-top: 32px; font-size: 30px; line-height: 1.2; }
+      p { color: #52636b; line-height: 1.65; }
+      .note { padding: 16px; background: #edf7f5; border-radius: 12px; font-size: 14px; }
+      button { width: 100%; margin-top: 12px; padding: 14px; border: 0; border-radius: 12px; background: #087e70; color: white; font: inherit; font-weight: 700; cursor: pointer; }
+      button:focus-visible { outline: 3px solid #092d3d; outline-offset: 4px; }
+      @media (max-width: 380px) { main { padding: 24px; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="brand"><span class="mark" aria-hidden="true">K</span>King’s Accounting</div>
+      <h1>You’re offline</h1>
+      <p>This page needs an internet connection. Reconnect, then try again to return to your work.</p>
+      <p class="note">Driver submissions saved on this device remain queued. Open the driver portal after reconnecting to sync them. Keep your browser data until they finish syncing.</p>
+      <button type="button" onclick="window.location.reload()">Try again</button>
+    </main>
+  </body>
+</html>
