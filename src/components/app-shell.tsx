@@ -71,7 +71,7 @@ export function AppShell({authenticated=false,assistantEnabled=false,userId,comp
       </div>
       <div className="mx-4 mt-4 flex items-center gap-3 rounded-xl bg-white/8 p-3">
         <div className="grid size-9 place-items-center rounded-lg bg-[var(--teal)]"><Building2 size={18}/></div>
-        <div className="min-w-0 flex-1"><div className="truncate text-sm font-bold">{companyName}</div><div className="text-xs text-white/55">Primary company</div></div><ChevronDown size={15}/>
+        <div className="min-w-0 flex-1"><div className="truncate text-sm font-bold">{companyName}</div><div className="text-xs text-white/55">Primary company</div></div>
       </div>
       <nav className="hide-scrollbar flex-1 overflow-y-auto px-3 py-5" aria-label="Primary navigation">
         {allowedNavigation.map(({label,icon:Icon})=><button key={label} onClick={()=>navigate(label)} className={`mb-1 flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-sm font-semibold transition ${active===label?"bg-[var(--teal)] text-white shadow-lg shadow-black/10":"text-white/65 hover:bg-white/7 hover:text-white"}`}><Icon size={18}/>{label}</button>)}

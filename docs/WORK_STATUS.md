@@ -10,12 +10,14 @@ Financial reports use posted ledger entries and dated receivable/payable allocat
 
 Finance users can link checking or savings accounts to active asset ledger accounts and upload bank CSV files without retaining the source file. Imports accept Amount or Debit/Credit layouts, enforce a 1 MB and 1,000-row limit, and deduplicate stable statement rows. Review requires an exact signed amount match to a posted journal containing the linked bank ledger. A period can only be completed when every imported row is resolved and the statement closing balance equals the cumulative posted book balance; completion locks the reconciliation and its rows.
 
+The visible workspace navigation now matches each role's server permissions. Dispatchers receive dispatch and approval controls; fleet managers receive fleet, fuel, maintenance and approval controls, including working vehicle creation and editing. Owner-only fleet deletion stays hidden for fleet managers. Financial and operational forms reject non-finite numeric values before calculations or persistence, and icon-only controls have accessible names. Dashboard month comparisons are calculated from current and prior-period records, and fleet cards no longer display hard-coded deltas or progress values.
+
 ## Release verification
 
-- Node 22: lint, TypeScript and 152 unit tests across 24 files pass.
+- Node 22: lint, TypeScript and 157 unit tests across 25 files pass.
 - A clean local database rebuild passes 242 SQL tests across 21 files.
 - Database function lint and security/performance advisors report no findings.
-- Production build and all four browser workflows pass: protected routing; owner onboarding, live modules, journal posting, financial reporting and outage recovery; mobile driver offline fuel synchronization and office approval; bank CSV import, ledger matching, reconciliation and locking.
+- Production build and all six browser workflows pass: protected routing; public demo navigation, quick actions, forms, accessible controls and sign-in links; dispatcher and fleet-manager role controls; owner onboarding, live modules, journal posting, financial reporting and outage recovery; mobile driver offline fuel synchronization and office approval; bank CSV import, ledger matching, reconciliation and locking.
 - CI now repeats application, database and browser verification.
 
 ## Remaining product and operational scope

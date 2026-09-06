@@ -17,8 +17,8 @@ export function validateWorkOrder(draft:WorkOrderDraft,records:WorkOrder[],editi
   if(!draft.unit.trim()) errors.unit="Unit is required.";
   if(!draft.description.trim()) errors.description="Description is required.";
   if(!draft.scheduledDate) errors.scheduledDate="Scheduled date is required.";
-  if(draft.odometer<0) errors.odometer="Odometer cannot be negative.";
-  if(draft.estimatedCost<0||draft.actualCost<0) errors.cost="Costs cannot be negative.";
+  if(!Number.isFinite(draft.odometer)||draft.odometer<0) errors.odometer="Odometer cannot be negative.";
+  if(!Number.isFinite(draft.estimatedCost)||!Number.isFinite(draft.actualCost)||draft.estimatedCost<0||draft.actualCost<0) errors.cost="Costs cannot be negative.";
   if(draft.status==="Completed"&&!draft.completedDate) errors.completedDate="Completion date is required.";
   return errors;
 }

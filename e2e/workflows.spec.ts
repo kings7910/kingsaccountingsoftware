@@ -16,9 +16,88 @@ async function createUser(name:string){
  if(error)throw error;return{id:data.user!.id,email};
 }
 async function insert(table:string,values:Record<string,unknown>){const {data,error}=await admin.from(table).insert(values).select("*").single();if(error)throw error;return data;}
+async function expectNamedButtons(page:Page){
+ const unnamed=await page.locator("button:visible").evaluateAll(buttons=>buttons.filter(button=>!button.getAttribute("aria-label")&&!button.getAttribute("title")&&!button.textContent?.trim()).map(button=>button.outerHTML.slice(0,180)));
+ expect(unnamed).toEqual([]);
+}
 
 test("protected workspace redirects unsigned users",async({page})=>{
  await page.goto("/workspace");await expect(page).toHaveURL(/\/login/);
+});
+
+test("demo navigation, quick actions, forms, and links are operable",async({page})=>{
+ await page.goto("/");
+ const nav=page.getByRole("navigation",{name:"Primary navigation"});
+ await expectNamedButtons(page);
+ await page.getByLabel("Search modules").fill("maint");
+ await page.getByLabel("Search modules").press("Enter");
+ await expect(page.getByRole("heading",{name:"Maintenance"})).toBeVisible();
+ await page.getByRole("button",{name:"Notifications"}).click();
+ await expect(page.getByRole("heading",{name:"Notifications"})).toBeVisible();
+ await page.getByRole("button",{name:"Quick add"}).click();
+ await page.getByRole("button",{name:"Transaction",exact:true}).click();
+ await expect(page.getByRole("heading",{name:"Add transaction"})).toBeVisible();
+ await page.getByRole("button",{name:"Cancel",exact:true}).click();
+
+ const forms:[string,string,string][]=[
+  ["Transactions","Add transaction","Cancel"],["Invoices","New invoice","Cancel"],
+  ["Bills & payables","New vendor bill","Cancel"],["Loads & routes","Create load","Cancel"],
+  ["Fleet","Add vehicle","Cancel"],["Fuel & mileage","Record fuel","Cancel"],
+  ["Maintenance","New work order","Cancel"],["Payroll","Start pay run","Cancel"],
+  ["Accounting","Journal entry","Close journal form"],["Team & roles","Invite person","Cancel"],
+ ];
+ for(const [moduleName,action,close] of forms){
+  await nav.getByRole("button",{name:moduleName,exact:true}).click();
+  await page.getByRole("button",{name:action,exact:true}).click();
+  await expect(page.locator("form").last()).toBeVisible();
+  await expectNamedButtons(page);
+  await page.getByRole("button",{name:close,exact:true}).click();
+ }
+ await nav.getByRole("button",{name:"Approvals",exact:true}).click();
+ await page.getByRole("button",{name:"Review next",exact:true}).click();
+ await expect(page.getByRole("button",{name:"Close approval review"})).toBeVisible();
+ await page.getByRole("button",{name:"Close approval review"}).click();
+ await nav.getByRole("button",{name:"Reports",exact:true}).click();
+ await page.getByRole("button",{name:"View reports",exact:true}).click();
+ await expect(page.getByRole("heading",{name:"Profit & loss"})).toBeVisible();
+ await nav.getByRole("button",{name:"Settings",exact:true}).click();
+ await page.getByRole("button",{name:"Save changes",exact:true}).first().click();
+ await expect(page.getByText("Settings saved successfully.")).toBeVisible();
+ await page.getByText("Kendra Williams",{exact:true}).click();
+ await expect(page.getByRole("link",{name:"Sign in to workspace"})).toHaveAttribute("href","/login");
+ await expectNamedButtons(page);
+});
+
+test("dispatcher and fleet manager controls match their server permissions",async({browser})=>{
+ const dispatcher=await createUser("Role Dispatcher"),fleetManager=await createUser("Role Fleet Manager");
+ const company=await insert("companies",{legal_name:"Role Matrix Test",display_name:"Role Matrix Test",created_by:dispatcher.id});
+ await insert("company_memberships",{company_id:company.id,user_id:dispatcher.id,role:"dispatcher"});
+ await insert("company_memberships",{company_id:company.id,user_id:fleetManager.id,role:"fleet_manager"});
+
+ const dispatchContext=await browser.newContext(),dispatchPage=await dispatchContext.newPage();
+ await login(dispatchPage,dispatcher.email);await expect(dispatchPage).toHaveURL(/\/workspace/);
+ const dispatchNav=dispatchPage.getByRole("navigation",{name:"Primary navigation"});
+ await expect(dispatchNav.getByRole("button")).toHaveText(["Overview","Loads & routes","Approvals","AI assistant"]);
+ await dispatchNav.getByRole("button",{name:"Loads & routes",exact:true}).click();
+ await expect(dispatchPage.getByRole("heading",{name:"Loads & routes"})).toBeVisible();
+ await expect(dispatchPage.getByRole("main").getByRole("alert")).toHaveCount(0);
+ await dispatchContext.close();
+
+ const fleetContext=await browser.newContext(),fleetPage=await fleetContext.newPage();
+ await login(fleetPage,fleetManager.email);await expect(fleetPage).toHaveURL(/\/workspace/);
+ const fleetNav=fleetPage.getByRole("navigation",{name:"Primary navigation"});
+ await expect(fleetNav.getByRole("button")).toHaveText(["Overview","Fleet","Fuel & mileage","Maintenance","Approvals","AI assistant"]);
+ await fleetNav.getByRole("button",{name:"Fleet",exact:true}).click();
+ await fleetPage.getByRole("button",{name:"Add vehicle",exact:true}).click();
+ await fleetPage.getByLabel("Unit number").fill("FM-101");
+ await fleetPage.getByLabel("Make",{exact:true}).fill("Freightliner");
+ await fleetPage.getByLabel("Model",{exact:true}).fill("Cascadia");
+ await fleetPage.getByRole("button",{name:"Save vehicle",exact:true}).click();
+ await expect(fleetPage.getByRole("heading",{name:"Truck FM-101"})).toBeVisible();
+ await expect(fleetPage.getByRole("button",{name:"Edit Truck FM-101"})).toBeVisible();
+ await expect(fleetPage.getByRole("button",{name:"Delete Truck FM-101"})).toHaveCount(0);
+ await expect(fleetPage.getByRole("main").getByRole("alert")).toHaveCount(0);
+ await fleetContext.close();
 });
 
 test("owner onboarding, live modules, journal posting and ledger reports",async({page})=>{
