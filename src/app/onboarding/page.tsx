@@ -12,11 +12,12 @@ export default async function OnboardingPage() {
   const userId = claimsData?.claims?.sub;
   if (error || typeof userId !== "string") redirect("/login");
 
-  const [{ data: profile }, { data: membership }] = await Promise.all([
+  const [{ data: profile, error: profileError }, { data: membership, error: membershipError }] = await Promise.all([
     supabase.from("profiles").select("full_name").eq("id", userId).maybeSingle(),
     supabase.from("company_memberships").select("id").eq("user_id", userId).eq("is_active", true).limit(1).maybeSingle(),
   ]);
 
+  if (profileError || membershipError) throw new Error("Unable to check your workspace. Please try again.");
   if (membership) redirect("/workspace");
   return <CompanyOnboarding userName={profile?.full_name || "there"}/>;
 }

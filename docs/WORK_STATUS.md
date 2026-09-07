@@ -1,6 +1,14 @@
 # Work status
 
-Updated September 6, 2026.
+Updated September 7, 2026.
+
+## Workspace recovery and final application checks
+
+Workspace and onboarding entry now distinguish failed profile or membership queries from a confirmed missing membership. Database failures show a retry screen instead of sending an existing user into company creation. The application error boundary uses the installed Next.js version’s `retry()` API to refetch the route, displays no raw error details, and reminds users to check financial submissions before repeating them. Unknown routes now show a responsive 404 page with workspace and demo links.
+
+Email-confirmation redirects reject protocol-relative URLs, backslashes, and control characters that URL parsing could normalize into an external destination. Internal password-recovery and workspace links remain supported.
+
+Node 22 verification passes lint, TypeScript, the final production build, 183 unit tests across 27 files, and 242 local SQL tests across 21 files. All six existing production-browser workflows pass against isolated local Supabase accounts. A separate 390px browser check confirms the new 404 page returns HTTP 404, has no horizontal overflow or page errors, and sends unsigned users to sign-in through its workspace link. These changes are local and have not been deployed. The production prerequisites below remain open.
 
 ## Implemented core workflows
 

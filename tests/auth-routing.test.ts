@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { authRedirect } from "@/lib/auth-routing";
+import { authRedirect, safeAuthDestination } from "@/lib/auth-routing";
+
+describe("confirmation redirect destinations", () => {
+  it.each([null, "", "https://external.test", "//external.test", "/\\external.test", "/\n/external.test", "/\t/external.test", "javascript:alert(1)"])("rejects unsafe destination %j", (value) => {
+    expect(safeAuthDestination(value)).toBe("/workspace");
+  });
+  it.each(["/workspace", "/reset-password", "/driver?load=123", "/workspace#reports"])("preserves internal destination %s", (value) => {
+    expect(safeAuthDestination(value)).toBe(value);
+    expect(new URL(safeAuthDestination(value), "https://kings.test").origin).toBe("https://kings.test");
+  });
+});
 
 describe("auth route decisions", () => {
   it("protects the workspace", () => expect(authRedirect("/workspace", false)).toBe("/login"));

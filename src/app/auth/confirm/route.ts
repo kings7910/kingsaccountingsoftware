@@ -1,12 +1,11 @@
 import { type EmailOtpType } from "@supabase/supabase-js";
 import { type NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-
-function safeDestination(value: string | null) { return value?.startsWith("/") && !value.startsWith("//") ? value : "/workspace"; }
+import { safeAuthDestination } from "@/lib/auth-routing";
 
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
-  const destination = safeDestination(request.nextUrl.searchParams.get("next"));
+  const destination = safeAuthDestination(request.nextUrl.searchParams.get("next"));
   if (!supabase) return NextResponse.redirect(new URL("/login?error=configuration", request.url));
   const code = request.nextUrl.searchParams.get("code");
   const tokenHash = request.nextUrl.searchParams.get("token_hash");
