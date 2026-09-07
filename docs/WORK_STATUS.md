@@ -8,7 +8,7 @@ Workspace and onboarding entry now distinguish failed profile or membership quer
 
 Email-confirmation redirects reject protocol-relative URLs, backslashes, and control characters that URL parsing could normalize into an external destination. Internal password-recovery and workspace links remain supported.
 
-Node 22 verification passes lint, TypeScript, the final production build, 183 unit tests across 27 files, and 242 local SQL tests across 21 files. All six existing production-browser workflows pass against isolated local Supabase accounts. A separate 390px browser check confirms the new 404 page returns HTTP 404, has no horizontal overflow or page errors, and sends unsigned users to sign-in through its workspace link. These changes are local and have not been deployed. The production prerequisites below remain open.
+Node 22 verification passes lint, TypeScript, the final production build, 183 unit tests across 27 files, and 242 local SQL tests across 21 files. All six existing production-browser workflows pass against isolated local Supabase accounts. A separate 390px browser check confirms the new 404 page returns HTTP 404, has no horizontal overflow or page errors, and sends unsigned users to sign-in through its workspace link. These changes were deployed to production on September 7, 2026 as source commit `98f393b`. The production prerequisites below remain open.
 
 ## Implemented core workflows
 
@@ -32,7 +32,7 @@ The visible workspace navigation now matches each role's server permissions. Dis
 
 Offline navigations now show a standalone recovery page with a retry control and guidance for queued driver submissions. The service worker caches only public offline assets, removes its older shell caches, and leaves account pages, API responses, and Server Component payloads uncached. Registration failures no longer cause unhandled promise rejections. Existing driver submission storage and synchronization are unchanged.
 
-Local verification: 163 unit tests across 26 files, TypeScript, lint and the production build pass. Browser checks confirm the public demo loads without page errors, a 390px mobile offline page has no horizontal overflow, and retrying after the server returns reaches sign-in for the protected driver route. This follow-up has not been deployed to production.
+Local verification: 163 unit tests across 26 files, TypeScript, lint and the production build pass. Browser checks confirm the public demo loads without page errors, a 390px mobile offline page has no horizontal overflow, and retrying after the server returns reaches sign-in for the protected driver route. This follow-up is included in the September 7, 2026 production release.
 
 ## Remaining product and operational scope
 
@@ -49,4 +49,6 @@ The original hosted baseline SQL matches the repository baseline. New hosted mig
 
 All 25 repository migrations are applied to hosted Supabase project `mwguntuwtzrxmtudejhn`, including A/P ledger posting, unpaid-bill reversals, vendor credit/debit adjustments, bank statement reconciliation, and its foreign-key indexes. Hosted security and performance advisors report no warnings or errors; informational notices remain for private deny-by-default storage, older foreign-key indexes and newly unused indexes. No hosted users or business records were created by release testing.
 
-The release branch is published through GitHub pull request 1. Interaction-audit commit `e0022ee` is deployed as Vercel production deployment `dpl_EEoywajvrSDT3GnvnyKZGLDomgrF` at `https://kings-accounting-software-two.vercel.app`; its live application returns HTTP 200 and its health endpoint reports database and authentication ready. Deployment Protection currently requires Vercel authentication to access the application. Team invitations and AI remain disabled until their server-only keys are configured.
+The release branch is published through GitHub pull request 1. Recovery and redirect-hardening commit `98f393b` is deployed as Vercel production deployment `dpl_8utKPYdjhVEhpLkkxcN58NqxyJG8` at `https://kings-accounting-software-two.vercel.app`; its live application returns HTTP 200 and its health endpoint reports database and authentication ready. Deployment Protection currently requires Vercel authentication to access the application. Team invitations and AI remain disabled until their server-only keys are configured.
+
+Post-deployment verification on September 7 confirms Vercel READY status, successful production promotion, live database and authentication health, and the new 404 response. The deployment-specific error-log scan returned no logs. The AI health flag remains false.
