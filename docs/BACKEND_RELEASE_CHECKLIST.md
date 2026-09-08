@@ -10,7 +10,8 @@ Authorized scope: continue fixing the backend and push the verified release live
 - [x] Customer payment reversals/refunds and their effect on dashboard/A/R reporting.
 - [x] Account/period/correction audit records and database security checks.
 - [x] Final application/browser verification: lint, TypeScript, build, 213 unit tests, 304 database tests and nine browser workflows.
-- [ ] Apply production migrations, deploy, and verify live health.
+- [x] Push source (`9ab59f6`) and stage Vercel build (`dpl_Cbeb8gpQVR864NDUVVhyCf8quHdC`, READY).
+- [ ] Apply three pending production migrations, promote the staged build, and verify live health.
 
 Production Supabase access must be restored before applying migrations or promoting the application. CLI access has no token; the connected app denies access. Vercel and GitHub access are available.
 

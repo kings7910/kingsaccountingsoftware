@@ -14,6 +14,10 @@ Validation passes under Node 22: lint, TypeScript, production build, 213 unit te
 
 Production database access is currently unavailable: the CLI has no Supabase access token and the connected Supabase app denies access. The user has been asked to reconnect. Do not promote this application build until all three new migrations are applied to `uxrssvjdbumclzintnri`. The two earlier September 8 migrations are already recorded as deployed above.
 
+Source commit `9ab59f6` is pushed to `origin/codex/complete-core-workflows`. Vercel deployment `dpl_Cbeb8gpQVR864NDUVVhyCf8quHdC` is READY at `https://kings-accounting-software-dwa8anypj-kings-9bed.vercel.app`, built with production configuration and `--skip-domain`. Its health endpoint confirms database/authentication connectivity at 21:43 UTC; this does not verify the pending schema or hosted business workflows. Its error-log scan returned no logs. The live domain still resolves to `dpl_ABz4Bq8E6iVhiHgFr1o7hWGU2prZ`. No production migration or promotion was performed.
+
+To resume release: restore Supabase CLI/app authentication, verify hosted migration history, apply only pending migrations `20260908212301`, `20260908213200`, and `20260908213538`, run hosted schema/advisor checks, then promote the staged deployment and verify the live domain. Existing source changes require no further application rebuild unless code or environment configuration changes.
+
 Remaining scope: guided legacy-invoice adoption/reconciliation, operational expense links between fuel/maintenance records and accounting entries, broader application use of saved settings, and provider-dependent services. Historical transactions and settlements are not automatically posted. Operational cost reports remain separate from posted ledger financial statements.
 
 ## Dashboard reporting backend — September 8, 2026
