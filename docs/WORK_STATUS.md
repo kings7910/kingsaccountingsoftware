@@ -2,6 +2,14 @@
 
 Updated September 8, 2026.
 
+## Operational accounting build — September 8, 2026
+
+Built an Accounting posting queue for approved fuel, completed maintenance, and delivered loads. Fuel/maintenance can become paid expenses or unpaid vendor bills; delivered loads become issued ledger-backed invoices including fuel surcharge. Source row locks, immutable accounting links, tenant foreign keys, RLS and finance-only RPCs prevent duplicate posting and protect billing details. Source modules show accounting linkage and hide editing. Existing expense, bill and invoice corrections remain available.
+
+Migration `20260908222741_operational_accounting.sql` was generated from the locally tested schema, reviewed to retain the pg_net extension, and supplemented with explicit table/function permissions. Local TypeScript, lint, 213 unit tests and 341 database assertions pass (304 prior checks plus 37 operational checks). Security/performance advisors are clean. All ten browser workflows pass (nine existing workflows, followed by the new operational workflow after fixing one-to-one link display). The new browser test verifies paid fuel, an unpaid maintenance bill, a delivered-load invoice, locked source controls and simultaneous posting retries. The production build passes and its accounting screenshot was reviewed. Production release is in progress.
+
+See [Operational accounting](OPERATIONAL_ACCOUNTING.md) for usage and limits. Historical manual-entry matching, POD/PDF/email workflows and external payment execution remain separate work.
+
 ## Internal accounting release live — September 8, 2026
 
 Supabase CLI authentication was restored with the user's verification code. The production dry run identified exactly the three pending migrations: `20260908212301`, `20260908213200`, and `20260908213538`. All three were applied to `uxrssvjdbumclzintnri` and verified in hosted migration history. Preflight counts showed no companies, income, expenses or settlements. Hosted checks confirm all three journal links, row-level security on customer corrections, and authenticated-only execution for the six public accounting functions. Security/performance advisors report no issues.

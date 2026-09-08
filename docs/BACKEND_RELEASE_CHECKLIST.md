@@ -15,4 +15,14 @@ Authorized scope: continue fixing the backend and push the verified release live
 
 Supabase CLI access was restored. All three migrations are applied to production, and deployment `dpl_Cbeb8gpQVR864NDUVVhyCf8quHdC` is live at https://kings-accounting-software-two.vercel.app. Database/authentication health passes; hosted advisors report no issues and the deployment error scan found no logs.
 
-Remaining product scope: guided legacy invoice reconciliation/adoption, operational cost links to prevent duplicate manual accounting, and wider use of saved company preferences. External bank feeds, payment execution, tax filing, OCR and email delivery require separately configured providers.
+Remaining product scope: guided legacy invoice reconciliation/adoption, historical operational-cost matching, POD/PDF/email workflows, and wider use of saved company preferences. External bank feeds, payment execution, tax filing, OCR and email delivery require separately configured providers.
+
+## Operational posting increment
+
+- [x] Fuel/maintenance expense or bill posting and source locks.
+- [x] Delivered-load invoice posting and protected billing details.
+- [x] Accounting queue and source-module linkage visibility.
+- [x] Retry, authorization, closed-period, audit and direct-write database tests.
+- [x] TypeScript, lint, 213 unit tests, 341 database assertions and clean advisors.
+- [x] All ten browser workflows, including concurrent posting requests, and production build.
+- [ ] Push source, apply the reviewed migration, deploy and verify live health.

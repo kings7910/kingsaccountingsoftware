@@ -1,7 +1,7 @@
 export const loadStatuses=["Ready","Dispatched","In transit","Delivered"] as const;
 export type LoadStatus=(typeof loadStatuses)[number];
-export type LoadRecord={id:string;number:string;origin:string;destination:string;customer:string;driver:string;unit:string;rate:number;plannedMiles:number;pickupOn:string;deliveryOn:string;status:LoadStatus};
-export type LoadDraft=Omit<LoadRecord,"id"|"number">;
+export type LoadRecord={accountingPosted?:boolean;id:string;number:string;origin:string;destination:string;customer:string;driver:string;unit:string;rate:number;plannedMiles:number;pickupOn:string;deliveryOn:string;status:LoadStatus};
+export type LoadDraft=Omit<LoadRecord,"accountingPosted"|"id"|"number">;
 
 export const demoLoads:LoadRecord[]=[
  {id:"load-2841",number:"LD-2841",origin:"Atlanta, GA",destination:"Dallas, TX",customer:"BlueLine Logistics",driver:"Marcus Hill",unit:"204",rate:4850,plannedMiles:842,pickupOn:"2026-09-03",deliveryOn:"2026-09-04",status:"In transit"},

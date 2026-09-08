@@ -1,8 +1,8 @@
 export const workOrderStatuses=["Scheduled","In progress","Completed","Cancelled"] as const;
 export const serviceTypes=["Preventive maintenance","Inspection","Repair","Tires","Other"] as const;
 export type WorkOrderStatus=(typeof workOrderStatuses)[number];
-export type WorkOrder={id:string;reference:string;unit:string;serviceType:(typeof serviceTypes)[number];description:string;vendor:string;scheduledDate:string;odometer:number;estimatedCost:number;actualCost:number;status:WorkOrderStatus;completedDate:string};
-export type WorkOrderDraft=Omit<WorkOrder,"id">;
+export type WorkOrder={accountingPosted?:boolean;id:string;reference:string;unit:string;serviceType:(typeof serviceTypes)[number];description:string;vendor:string;scheduledDate:string;odometer:number;estimatedCost:number;actualCost:number;status:WorkOrderStatus;completedDate:string};
+export type WorkOrderDraft=Omit<WorkOrder,"accountingPosted"|"id">;
 
 export const demoWorkOrders:WorkOrder[]=[
   {id:"wo-1052",reference:"WO-1052",unit:"118",serviceType:"Preventive maintenance",description:"Oil and filter service",vendor:"Martin Fleet Services",scheduledDate:"2026-09-06",odometer:193000,estimatedCost:485,actualCost:0,status:"Scheduled",completedDate:""},

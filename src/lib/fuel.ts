@@ -1,5 +1,5 @@
-export type FuelEntry={id:string;date:string;unit:string;vendor:string;location:string;gallons:number;totalCost:number;odometer:number;state:string;receiptReference:string};
-export type FuelDraft=Omit<FuelEntry,"id">;
+export type FuelEntry={accountingPosted?:boolean;id:string;date:string;unit:string;vendor:string;location:string;gallons:number;totalCost:number;odometer:number;state:string;receiptReference:string};
+export type FuelDraft=Omit<FuelEntry,"accountingPosted"|"id">;
 export const demoFuelEntries:FuelEntry[]=[
  {id:"fuel-1",date:"2026-09-03",unit:"204",vendor:"Pilot",location:"Dallas, TX",gallons:116.4,totalCost:485,odometer:168240,state:"TX",receiptReference:"RCT-0844"},
  {id:"fuel-2",date:"2026-09-01",unit:"204",vendor:"Love’s",location:"Memphis, TN",gallons:124.4,totalCost:533,odometer:167398,state:"TN",receiptReference:"RCT-0839"},
