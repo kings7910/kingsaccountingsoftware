@@ -1,6 +1,14 @@
 # Work status
 
-Updated September 7, 2026.
+Updated September 8, 2026.
+
+## Replacement Supabase project — September 8, 2026
+
+Created `kings-accounting-software` (`uxrssvjdbumclzintnri`) in `onevillageshipping@gmail.com's Org` (`dpmndtdjnkojgcrrpexl`) on its Free plan in `us-east-1`. This is a fresh database, not a restore of the previous hosted project's records.
+
+All 25 repository migrations were applied and verified. The database has 48 public tables, all with row-level security enabled, and zero auth users. Security and performance advisors returned no warnings or errors. The authentication health endpoint returned HTTP 200.
+
+The local Supabase CLI link and ignored `.env.local` now target this project. Credentials are excluded from Git. Vercel still requires access to the production account before its environment variables can be updated and the app redeployed against this database. Earlier hosted release entries below describe the previous project and deployment.
 
 ## Workspace recovery and final application checks
 
