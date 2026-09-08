@@ -3,8 +3,24 @@ import { invoiceTotals } from "@/lib/calculations";
 export const invoiceStatuses=["Draft","Sent","Overdue","Paid"] as const;
 export type InvoiceStatus=(typeof invoiceStatuses)[number];
 export type InvoiceItem={id:string;description:string;quantity:number;unitPrice:number;taxRate:number};
-export type Invoice={id:string;number:string;customer:string;issuedOn:string;dueOn:string;status:InvoiceStatus;items:InvoiceItem[];notes:string};
-export type InvoiceDraft=Omit<Invoice,"id"|"number">;
+export type Invoice={id:string;number:string;customer:string;issuedOn:string;dueOn:string;status:InvoiceStatus;items:InvoiceItem[];notes:string;ledgerManaged?:boolean;journalNumber?:string;total?:number;payments?:InvoicePayment[];credits?:InvoiceCredit[];adjustments?:InvoiceAdjustment[]};
+export type InvoiceDraft=Pick<Invoice,"customer"|"issuedOn"|"dueOn"|"status"|"items"|"notes">;
+export type InvoicePayment={id:string;date:string;amount:number;reference:string;journalNumber:string;accountId?:string};
+export type InvoiceAdjustment={id:string;date:string;amount:number;kind:string;paymentId:string;reason:string;journalNumber:string};
+export type InvoiceCredit={id:string;date:string;amount:number;reason:string;journalNumber:string};
+export type InvoiceAllocationDraft={date:string;amount:number;reference:string;accountId:string;requestId:string};
+export type InvoiceCursor={issuedOn:string;id:string};
+export type InvoicePage={items:Invoice[];nextCursor:InvoiceCursor|null};
+export function invoiceBalance(invoice:Invoice){if(!invoice.payments&&!invoice.credits&&invoice.status==="Paid")return 0;return Math.round(((invoice.total??invoiceAmount(invoice))-(invoice.payments??[]).reduce((n,x)=>n+x.amount,0)-(invoice.credits??[]).reduce((n,x)=>n+x.amount,0)+(invoice.adjustments??[]).reduce((n,x)=>n+x.amount,0))*100)/100}
+export function validateInvoiceAllocation(value:InvoiceAllocationDraft,invoice:Invoice,kind:"payment"|"credit",checkBalance=true){
+ const errors:Record<string,string>={};const limit=kind==="payment"?invoiceBalance(invoice):(invoice.total??invoiceAmount(invoice))-(invoice.credits??[]).reduce((n,x)=>n+x.amount,0);
+ if(!value.date||value.date<invoice.issuedOn||value.date>new Date().toISOString().slice(0,10))errors.date="Choose a date from the invoice date through today.";
+ if(!Number.isFinite(value.amount)||value.amount<=0||Math.abs(value.amount*100-Math.round(value.amount*100))>0.000001||(checkBalance&&value.amount>limit))errors.amount="Enter a positive amount within the remaining balance, with at most two decimals.";
+ if(kind==="payment"&&!value.accountId)errors.accountId="Choose a cash or bank account.";
+ if(kind==="credit"&&!value.reference.trim())errors.reference="Explain the credit.";
+ return errors;
+}
+
 
 export const demoInvoices:Invoice[]=[
   {id:"invoice-1048",number:"INV-1048",customer:"BlueLine Logistics",issuedOn:"2026-08-03",dueOn:"2026-09-02",status:"Paid",notes:"",items:[{id:"item-1",description:"Atlanta to Dallas freight",quantity:1,unitPrice:8450,taxRate:0}]},

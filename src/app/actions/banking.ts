@@ -1,4 +1,5 @@
 "use server";
+import {readQueryRows} from "@/lib/read-query-rows";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {createHash} from "node:crypto";
 import {createClient} from "@/lib/supabase/server";
@@ -8,12 +9,12 @@ async function context(companyId:string){const s=await createClient();if(!s)thro
 const relation=(value:any)=>Array.isArray(value)?value[0]:value;
 
 export async function listBankingWorkspace(companyId:string):Promise<BankingWorkspaceData>{const s=await context(companyId);const[accountsResult,ledgerResult,transactionsResult,journalsResult,reconciliationsResult,importsResult]=await Promise.all([
-  s.from("bank_accounts").select("id,name,account_type,ledger_account_id,ledger:chart_of_accounts(account_number,name)").eq("company_id",companyId).eq("active",true).order("name"),
-  s.from("chart_of_accounts").select("id,account_number,name").eq("company_id",companyId).eq("account_type","asset").eq("active",true).order("account_number"),
-  s.from("imported_transactions").select("id,bank_account_id,posted_on,description,amount,review_status,matched_id,review_note,reconciliation_id").eq("company_id",companyId).order("posted_on",{ascending:false}).limit(1000),
-  s.from("journal_entries").select("id,entry_number,entry_date,memo,status,lines:journal_lines(account_id,debit,credit)").eq("company_id",companyId).eq("status","posted").order("entry_date",{ascending:false}).limit(1000),
-  s.from("reconciliations").select("id,bank_account_id,statement_starts_on,statement_ends_on,statement_balance,reconciled_balance,status,locked_at").eq("company_id",companyId).order("statement_ends_on",{ascending:false}).limit(24),
-  s.from("bank_statement_imports").select("id,bank_account_id,original_name,row_count,imported_count,duplicate_count,created_at").eq("company_id",companyId).order("created_at",{ascending:false}).limit(12)
+  readQueryRows(offset=>s.from("bank_accounts").select("id,name,account_type,ledger_account_id,ledger:chart_of_accounts(account_number,name)").eq("company_id",companyId).eq("active",true).order("name").order("id").range(offset,offset+499)),
+  readQueryRows(offset=>s.from("chart_of_accounts").select("id,account_number,name").eq("company_id",companyId).eq("account_type","asset").eq("active",true).order("account_number").order("id").range(offset,offset+499)),
+  readQueryRows(offset=>s.from("imported_transactions").select("id,bank_account_id,posted_on,description,amount,review_status,matched_id,review_note,reconciliation_id").eq("company_id",companyId).order("posted_on",{ascending:false}).order("id").range(offset,offset+499)),
+  readQueryRows(offset=>s.from("journal_entries").select("id,entry_number,entry_date,memo,status,lines:journal_lines(account_id,debit,credit)").eq("company_id",companyId).eq("status","posted").order("entry_date",{ascending:false}).order("id").range(offset,offset+499)),
+  readQueryRows(offset=>s.from("reconciliations").select("id,bank_account_id,statement_starts_on,statement_ends_on,statement_balance,reconciled_balance,status,locked_at").eq("company_id",companyId).order("statement_ends_on",{ascending:false}).order("id").range(offset,offset+499)),
+  readQueryRows(offset=>s.from("bank_statement_imports").select("id,bank_account_id,original_name,row_count,imported_count,duplicate_count,created_at").eq("company_id",companyId).order("created_at",{ascending:false}).order("id").range(offset,offset+499))
 ]);
   for(const result of [accountsResult,ledgerResult,transactionsResult,journalsResult,reconciliationsResult,importsResult])if(result.error)throw new Error(result.error.message);
   const accounts=(accountsResult.data??[]).map((x:any)=>{const ledger=relation(x.ledger);return{id:String(x.id),name:String(x.name),accountType:String(x.account_type),ledgerAccountId:String(x.ledger_account_id??""),ledgerAccount:`${ledger?.account_number??""} · ${ledger?.name??"Unlinked"}`}});

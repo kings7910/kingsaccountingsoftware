@@ -1,4 +1,4 @@
-export const transactionStatuses = ["Needs review", "Matched", "Scheduled", "Paid"] as const;
+export const transactionStatuses = ["Needs review", "Matched", "Scheduled", "Paid", "Reversed"] as const;
 export const transactionKinds = ["income", "expense"] as const;
 
 export type TransactionStatus = (typeof transactionStatuses)[number];
@@ -6,6 +6,10 @@ export type TransactionKind = (typeof transactionKinds)[number];
 
 export type Transaction = {
   id: string;
+  journalId?:string;
+  cashAccountId?:string;
+  categoryAccountId?:string;
+  requestId?:string;
   occurredOn: string;
   payee: string;
   description: string;

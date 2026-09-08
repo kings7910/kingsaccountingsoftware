@@ -79,7 +79,8 @@ export function ledgerReports(journals: LedgerJournal[], range: ReportRange): Re
 export type ReceivableInvoice = {
   issued_on:string;due_on:string;status:string;total:number|string;
   payments:{received_on:string;amount:number|string}[];
-  credits:{created_at:string;amount:number|string}[];
+  adjustments?:{adjusted_on:string;amount:number|string}[];
+  credits:{created_at:string;credited_on?:string;amount:number|string}[];
 };
 export function receivableAging(invoices:ReceivableInvoice[],exclusiveEnd:string) {
   const buckets=[0,0,0,0];
@@ -89,12 +90,25 @@ export function receivableAging(invoices:ReceivableInvoice[],exclusiveEnd:string
     const allAllocated=invoice.payments.reduce((n,p)=>n+cents(p.amount),0)+invoice.credits.reduce((n,p)=>n+cents(p.amount),0);
     if(invoice.status==="paid"&&allAllocated<total)throw new Error("Some invoices were marked paid without dated payment records. Record those payments before generating historical A/R aging.");
     const payments=invoice.payments.filter(p=>p.received_on<exclusiveEnd).reduce((n,p)=>n+cents(p.amount),0);
-    const credits=invoice.credits.filter(p=>p.created_at.slice(0,10)<exclusiveEnd).reduce((n,p)=>n+cents(p.amount),0);
-    const outstanding=Math.max(0,total-payments-credits);
+    const credits=invoice.credits.filter(p=>(p.credited_on??p.created_at.slice(0,10))<exclusiveEnd).reduce((n,p)=>n+cents(p.amount),0);
+    const corrections=(invoice.adjustments??[]).filter(p=>p.adjusted_on<exclusiveEnd).reduce((n,p)=>n+cents(p.amount),0);
+    const outstanding=Math.max(0,total-payments-credits+corrections);
     const days=Math.floor((Date.parse(exclusiveEnd)-86400000-Date.parse(invoice.due_on))/86400000);
     buckets[days<=0?0:days<=30?1:days<=60?2:3]+=outstanding;
   }
   return buckets.map(value=>value/100);
+}
+
+export function receivableCredits(invoices:ReceivableInvoice[],exclusiveEnd:string){
+ let total=0;
+ for(const invoice of invoices){
+  if(["draft","void","cancelled"].includes(invoice.status)||invoice.issued_on>=exclusiveEnd)continue;
+  const payments=invoice.payments.filter(x=>x.received_on<exclusiveEnd).reduce((n,x)=>n+cents(x.amount),0);
+  const credits=invoice.credits.filter(x=>(x.credited_on??x.created_at.slice(0,10))<exclusiveEnd).reduce((n,x)=>n+cents(x.amount),0);
+  const corrections=(invoice.adjustments??[]).filter(p=>p.adjusted_on<exclusiveEnd).reduce((n,p)=>n+cents(p.amount),0);
+  total+=Math.max(0,payments+credits-corrections-cents(invoice.total));
+ }
+ return total/100;
 }
 
 export type PayableBill = {

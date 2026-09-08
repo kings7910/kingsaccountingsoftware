@@ -1,5 +1,5 @@
 import {describe,expect,it} from "vitest";
-import {ledgerAccountCreditBalance,ledgerReports,LedgerJournal,reportRange,receivableAging,payableAging,payableCredits} from "@/lib/financial-reports";
+import {ledgerAccountCreditBalance,ledgerReports,LedgerJournal,reportRange,receivableAging,receivableCredits,payableAging,payableCredits} from "@/lib/financial-reports";
 const range=reportRange("September 2026");
 const journal=(id:string,date:string,debit:string,credit:string,value:number):LedgerJournal=>({id,entry_date:date,status:"posted",lines:[{debit:value,credit:0,account:{account_number:debit,name:debit,account_type:debit.startsWith("5")?"expense":"asset"}},{debit:0,credit:value,account:{account_number:credit,name:credit,account_type:credit.startsWith("4")?"income":credit.startsWith("3")?"equity":credit.startsWith("2")?"liability":"asset"}}]});
 const fixtures=[journal("capital","2026-07-01","1000","3000",1000),journal("aug-income","2026-08-10","1000","4000",200),journal("income","2026-09-10","1000","4000",300),journal("expense","2026-09-11","5000","1000",50)];
@@ -70,4 +70,21 @@ describe("payable aging",()=>{
  it("reports overpaid balances as vendor credits",()=>expect(payableCredits([{...bill,status:"paid",payments:[{paid_on:"2026-09-01",amount:100}],adjustments:[{adjusted_on:"2026-09-02",adjustment_type:"credit",amount:25}]}],"2026-10-01")).toBe(25));
  it("excludes draft and void bills",()=>expect(payableAging([{...bill,status:"draft"},{...bill,status:"void"}],"2026-10-01")).toEqual([0,0,0,0]));
  it("rejects a paid status without dated allocations",()=>expect(()=>payableAging([{...bill,status:"paid"}],"2026-10-01")).toThrow("dated payments"));
+});
+
+describe("dated customer credits",()=>{
+ const invoice={issued_on:"2026-09-01",due_on:"2026-09-30",status:"paid",total:100,payments:[{received_on:"2026-09-02",amount:100}],credits:[{created_at:"2026-10-04T10:00:00Z",credited_on:"2026-09-03",amount:25}]};
+ it("uses the credit effective date instead of its entry timestamp",()=>{expect(receivableCredits([invoice],"2026-09-04")).toBe(25);expect(receivableCredits([invoice],"2026-09-03")).toBe(0)});
+ it("keeps aging nonnegative and reports customer credits separately",()=>{expect(receivableAging([invoice],"2026-09-04")).toEqual([0,0,0,0]);expect(receivableCredits([invoice],"2026-09-04")).toBe(25)});
+});
+
+describe("customer payment correction reporting",()=>{
+ it("reopens dated receivables and reduces refundable credit only from the correction date",()=>{
+  const invoice={issued_on:"2026-09-01",due_on:"2026-09-30",status:"sent",total:100,payments:[{received_on:"2026-09-02",amount:100}],credits:[],adjustments:[{adjusted_on:"2026-09-04",amount:100}]};
+  expect(receivableAging([invoice],"2026-09-04")).toEqual([0,0,0,0]);
+  expect(receivableAging([invoice],"2026-09-05")).toEqual([100,0,0,0]);
+  const credit={...invoice,status:"paid",credits:[{created_at:"2026-09-03",amount:50}],adjustments:[{adjusted_on:"2026-09-04",amount:50}]};
+  expect(receivableCredits([credit],"2026-09-04")).toBe(50);
+  expect(receivableCredits([credit],"2026-09-05")).toBe(0);
+ });
 });
