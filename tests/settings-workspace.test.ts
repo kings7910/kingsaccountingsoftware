@@ -5,6 +5,7 @@ import {SettingsWorkspace} from "@/components/settings/settings-workspace";
 import {productionSettings} from "@/lib/settings";
 const {loadCompanySettings,saveCompanySettings}=vi.hoisted(()=>({loadCompanySettings:vi.fn(),saveCompanySettings:vi.fn()}));
 vi.mock("@/app/actions/settings",()=>({loadCompanySettings,saveCompanySettings}));
+vi.mock("@/app/actions/invoice-delivery",()=>({loadBusinessEmailSettings:vi.fn(),saveBusinessEmailSettings:vi.fn(),disconnectBusinessEmail:vi.fn()}));
 let container:HTMLDivElement,root:Root;
 beforeEach(()=>{(globalThis as typeof globalThis&{IS_REACT_ACT_ENVIRONMENT:boolean}).IS_REACT_ACT_ENVIRONMENT=true;vi.clearAllMocks();container=document.createElement("div");document.body.append(container);root=createRoot(container)});
 afterEach(async()=>{await act(async()=>root.unmount());container.remove()});

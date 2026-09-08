@@ -2,6 +2,17 @@
 
 Updated September 8, 2026.
 
+
+## Invoice PDF and business email build — September 8, 2026
+
+Completed the unfinished invoice document/email work in the workspace. Invoice cards now open a PDF download and email panel with recipient review, latest-50 delivery history and retries using the same attempt reference. Settings → Notifications now provides owner/administrator sender setup with encrypted Resend credentials. Issued ledger-backed invoices can be emailed by finance writers; finance readers can download PDF documents. Draft and historical PDFs are identified explicitly. Provider acceptance is distinguished from confirmed delivery; automatic notification preferences remain inactive.
+
+Recovered the existing local email schema into migration `20260908230815_invoice_documents_delivery.sql`, preserving pg_net and explicit grants/revocations. Credentials and frozen email payloads are inaccessible to clients. Company membership, role checks, invoice eligibility, two-minute processing leases, immutable retry payloads and a 23-hour retry limit protect sending. PDF generation handles Unicode supported by the bundled licensed font, page breaks and explicit size/character limits.
+
+Validation under Node 22: production build, TypeScript and lint pass; 237 unit tests across the main run and two new targeted suites pass; all 360 database assertions and all ten browser workflows pass. Browser coverage now downloads a real authenticated PDF and checks the invoice document panel at 390px; its screenshot and the login screenshot were reviewed. A clean shadow build of the committed migration sequence plus the new migration matches the local public schema with no differences. Local migration history includes the new migration. Database advisors report no issues.
+
+This increment is **local and not deployed**. No live email was sent. Hosted release requires applying the new migration and configuring the server-only encryption key; each business must connect its own verified Resend sender before actual sending. See [Invoice delivery](INVOICE_DELIVERY.md) for setup, retry behavior and limits. Remaining work includes document/POD attachments, driver pay statements, guided legacy adoption, broader saved-setting behavior, older bank-item access, reminder scheduling, delivery webhooks and provider-dependent integrations.
+
 ## Operational accounting live — September 8, 2026
 
 Built an Accounting posting queue for approved fuel, completed maintenance, and delivered loads. Fuel/maintenance can become paid expenses or unpaid vendor bills; delivered loads become issued ledger-backed invoices including fuel surcharge. Source row locks, immutable accounting links, tenant foreign keys, RLS and finance-only RPCs prevent duplicate posting and protect billing details. Source modules show accounting linkage and hide editing. Existing expense, bill and invoice corrections remain available.
@@ -128,3 +139,7 @@ All 25 repository migrations are applied to hosted Supabase project `mwguntuwtzr
 The release branch is published through GitHub pull request 1. Recovery and redirect-hardening commit `98f393b` is deployed as Vercel production deployment `dpl_8utKPYdjhVEhpLkkxcN58NqxyJG8` at `https://kings-accounting-software-two.vercel.app`; its live application returns HTTP 200 and its health endpoint reports database and authentication ready. Deployment Protection currently requires Vercel authentication to access the application. Team invitations and AI remain disabled until their server-only keys are configured.
 
 Post-deployment verification on September 7 confirms Vercel READY status, successful production promotion, live database and authentication health, and the new 404 response. The deployment-specific error-log scan returned no logs. The AI health flag remains false.
+
+## Standing release authorization — September 8, 2026
+
+The user authorized committing, pushing and deploying verified local changes to production by default. This instruction is recorded in AGENTS.md. The invoice document/email release is being prepared under that authorization. Its production encryption secret is now configured in Vercel. Supabase CLI authentication expired and the connector denies access; a fresh CLI verification code has been requested before applying the migration and promoting the release. No business email has been sent.

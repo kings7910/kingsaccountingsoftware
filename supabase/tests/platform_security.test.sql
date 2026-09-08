@@ -11,8 +11,9 @@ select ok(not exists (
   select 1 from pg_catalog.pg_class c
   join pg_catalog.pg_namespace n on n.oid = c.relnamespace
   where n.nspname = 'public' and c.relkind in ('r', 'p')
+    and c.relname not in ('company_email_settings','invoice_email_payloads')
     and not has_table_privilege('authenticated', c.oid, 'SELECT')
-), 'authenticated users can reach every public table through the Data API');
+), 'authenticated users can reach business tables while server-only email secrets remain restricted');
 
 select ok(has_schema_privilege('authenticated', 'private', 'USAGE'),
   'authenticated users can resolve private RLS helpers');

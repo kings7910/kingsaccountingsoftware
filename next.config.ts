@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  outputFileTracingIncludes: {"/api/companies/*/invoices/*/pdf": ["./assets/invoice-fonts/DejaVuSans.ttf"], "/workspace": ["./assets/invoice-fonts/DejaVuSans.ttf"]},
   experimental: {
     optimizePackageImports: ["lucide-react", "recharts"],
     useTypeScriptCli: false,

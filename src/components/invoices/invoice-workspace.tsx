@@ -3,12 +3,14 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { FileText, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { demoInvoices, Invoice, invoiceAmount, invoiceBalance, InvoiceDraft, invoiceStatuses, InvoiceCursor, InvoiceAllocationDraft, nextInvoiceNumber, validateInvoice, validateInvoiceAllocation } from "@/lib/invoices";
 import { deleteInvoice, listInvoices, saveInvoice, recordInvoiceAllocation, recordInvoiceCorrection, listInvoicePaymentAccounts, loadInvoiceDefaults } from "@/app/actions/invoices";
+import {InvoiceDelivery} from "./invoice-delivery";
 const storageKey="kings-invoices-v1",currency=new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"});
 const newItem=()=>({id:crypto.randomUUID(),description:"",quantity:1,unitPrice:0,taxRate:0});
 const blank=():InvoiceDraft=>({customer:"",issuedOn:new Date().toISOString().slice(0,10),dueOn:"",status:"Draft",notes:"",items:[newItem()]});
 const message=(cause:unknown)=>cause instanceof Error?cause.message:"Unable to complete this request.";
 export function InvoiceWorkspace({openCreate,onCreateClosed,companyId}:{openCreate:boolean;onCreateClosed:()=>void;companyId?:string}){
  const [records,setRecords]=useState<Invoice[]>(companyId?[]:demoInvoices),[loadedKey,setLoadedKey]=useState(companyId?"":"demo"),[loaded,setLoaded]=useState(false);
+ const [delivery,setDelivery]=useState<string|null>(null);
  const [query,setQuery]=useState(""),[status,setStatus]=useState("All statuses"),[editing,setEditing]=useState<Invoice|null>(null),[allocation,setAllocation]=useState<{invoice:Invoice;kind:"payment"|"credit"|"refund"|"reversal";paymentId?:string}|null>(null);
  const [error,setError]=useState(""),[busy,setBusy]=useState(false),[reload,setReload]=useState(0),[cursor,setCursor]=useState<InvoiceCursor|null>(null);
  useEffect(()=>{let active=true;if(companyId){listInvoices(companyId).then(page=>{if(active){setRecords(page.items);setCursor(page.nextCursor);setError("");setLoadedKey(companyId)}}).catch(cause=>{if(active)setError(message(cause))}).finally(()=>{if(active)setLoaded(true)});return()=>{active=false}}
@@ -35,6 +37,7 @@ export function InvoiceWorkspace({openCreate,onCreateClosed,companyId}:{openCrea
    {invoice.journalNumber&&<p className="mt-1 text-xs text-[var(--teal)]">Posted {invoice.journalNumber}</p>}
    {legacy&&<p className="mt-3 text-sm text-amber-800">Legacy invoice: reconcile existing journals with your accountant before making changes.</p>}
    <div className="mt-4 flex flex-wrap gap-2 border-t border-[var(--line)] pt-4">
+    {companyId&&<button className="rounded-lg border px-3 py-2 text-xs font-bold" onClick={()=>setDelivery(invoice.id)}>PDF / email</button>}
     {!legacy&&invoice.status==="Draft"&&<><button disabled={busy} onClick={()=>setEditing(invoice)} aria-label={`Edit ${invoice.number}`} className="rounded-lg border p-2"><Pencil size={16}/></button><button disabled={busy} onClick={()=>void remove(invoice)} aria-label={`Delete ${invoice.number}`} className="rounded-lg border p-2"><Trash2 size={16}/></button></>}
     {companyId&&!legacy&&invoice.journalNumber&&<>{balance<0&&<button className="rounded-lg border px-3 py-2 text-xs font-bold" onClick={()=>setAllocation({invoice,kind:"refund"})}>Record refund</button>}{balance>0&&<button className="rounded-lg bg-[var(--teal)] px-3 py-2 text-xs font-bold text-white" onClick={()=>setAllocation({invoice,kind:"payment"})}>Record payment</button>}{(invoice.credits??[]).reduce((n,x)=>n+x.amount,0)<(invoice.total??invoiceAmount(invoice))&&<button className="rounded-lg border px-3 py-2 text-xs font-bold" onClick={()=>setAllocation({invoice,kind:"credit"})}>Credit note</button>}</>}
    </div>
@@ -42,6 +45,7 @@ export function InvoiceWorkspace({openCreate,onCreateClosed,companyId}:{openCrea
   </article>})}</div>
   {!visible.length&&<p className="card mt-4 p-8 text-center">No invoices found in the loaded records.</p>}
   {cursor&&<button disabled={busy} onClick={()=>void loadMore()} className="mt-4 rounded-xl border px-4 py-3 font-bold">{busy?"Loading…":"Load older invoices"}</button>}
+  {delivery&&companyId&&<InvoiceDelivery key={`${companyId}/${delivery}`} companyId={companyId} invoiceId={delivery} onClose={()=>setDelivery(null)}/>}
   {(openCreate||editing)&&<InvoiceForm companyId={companyId} invoice={editing} onCancel={()=>{setEditing(null);onCreateClosed()}} onSave={save}/>}
   {allocation&&companyId&&<AllocationForm invoice={allocation.invoice} kind={allocation.kind} paymentId={allocation.paymentId} companyId={companyId} onClose={()=>setAllocation(null)} onSaved={saved=>{setRecords(current=>current.map(x=>x.id===saved.id?saved:x));setAllocation(null)}}/>}
  </>;

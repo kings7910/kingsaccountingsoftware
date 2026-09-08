@@ -328,6 +328,19 @@ test("issued invoices, partial payments and credits reconcile to the ledger",asy
  await expect(form).toHaveCount(0);
  const card=page.locator("article").filter({has:page.getByRole("heading",{name:"Ledger Customer",exact:true})});
  await expect(card.getByText(/Posted JE-/)).toBeVisible();
+ await card.getByRole("button",{name:"PDF / email",exact:true}).click();
+ const delivery=page.getByRole("dialog",{name:"Invoice document and email"});
+ await expect(delivery.getByText("No email attempts yet.")).toBeVisible();
+ const downloadEvent=page.waitForEvent("download");
+ await delivery.getByRole("button",{name:"Download PDF",exact:true}).click();
+ const download=await downloadEvent;expect(download.suggestedFilename()).toMatch(/^INV-.*\.pdf$/);
+ const pdfPath=await download.path();expect(readFileSync(pdfPath!).subarray(0,5).toString()).toBe("%PDF-");
+ await page.setViewportSize({width:390,height:844});
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
+ await page.screenshot({path:"test-results/invoice-document-mobile.png"});
+ await delivery.getByRole("button",{name:"Close",exact:true}).click();
+ await page.setViewportSize({width:1440,height:1000});
+
  await expect(card.getByRole("button",{name:/^Edit /})).toHaveCount(0);
  await card.getByRole("button",{name:"Record payment",exact:true}).click();
  const payment=page.getByRole("dialog",{name:"Record customer payment"});
