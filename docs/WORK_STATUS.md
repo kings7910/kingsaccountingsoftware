@@ -2,13 +2,19 @@
 
 Updated September 8, 2026.
 
+## Audit history pagination and export recovery — September 8, 2026
+
+Audit history now loads in batches of 250, with a timestamp-and-ID cursor so older events remain accessible beyond the previous 1,000-event limit. Cursor timestamps preserve database precision and every page rechecks active membership and audit permissions. The interface shows loaded and matching counts and explains that search and CSV export cover loaded events. Failed reads offer retry controls, failed later pages preserve existing history, and exports are blocked during loading, after errors, or when no events match. Company changes discard the previous company's display and ignore outstanding requests. CSV exports neutralize spreadsheet formulas in user-entered fields and quote carriage returns.
+
+Validation: 193 unit tests, TypeScript, lint, and a production build pass. An isolated local browser workflow verifies 510 same-timestamp events across three pages, oldest-event search, filtered CSV download, and a 390px layout without horizontal overflow. Browser visual checks show the audit screen loads without page errors. No database schema changes are required for this release.
+
 ## Replacement Supabase project — September 8, 2026
 
 Created `kings-accounting-software` (`uxrssvjdbumclzintnri`) in `onevillageshipping@gmail.com's Org` (`dpmndtdjnkojgcrrpexl`) on its Free plan in `us-east-1`. This is a fresh database, not a restore of the previous hosted project's records.
 
 All 25 repository migrations were applied and verified. The database has 48 public tables, all with row-level security enabled, and zero auth users. Security and performance advisors returned no warnings or errors. The authentication health endpoint returned HTTP 200.
 
-The local Supabase CLI link and ignored `.env.local` now target this project. Credentials are excluded from Git. Vercel still requires access to the production account before its environment variables can be updated and the app redeployed against this database. Earlier hosted release entries below describe the previous project and deployment.
+The local Supabase CLI link and ignored `.env.local` now target this project. Credentials are excluded from Git. Vercel production is connected to this replacement database. Its environment variables and Supabase sign-in redirects were updated, and deployment `dpl_3zMvsZ7KaoiQhGF4KYigm798tsjE` passed live database and authentication checks before promotion. Earlier hosted release entries below describe the previous project and deployment.
 
 ## Workspace recovery and final application checks
 
@@ -44,7 +50,7 @@ Local verification: 163 unit tests across 26 files, TypeScript, lint and the pro
 
 ## Remaining product and operational scope
 
-- Team invitations require the server-only SUPABASE_SERVICE_ROLE_KEY in Vercel. AI requires OPENAI_API_KEY. Neither secret was configured at the release check; keys must never be pasted into source or client variables.
+- The server-only SUPABASE_SERVICE_ROLE_KEY is now configured in Vercel for team invitations. Hosted invitation email delivery remains unverified. AI still requires OPENAI_API_KEY; credentials must never be committed or exposed in client variables.
 - Live bank feeds, payment processing, receipt OCR and automatic payroll tax filing require separate integrations. Manual bank CSV import and reconciliation work without a feed provider.
 - Production email delivery, recovery redirects, backups and a restore rehearsal must be verified before real financial records are onboarded.
 - Browser tests use isolated local accounts. Hosted email delivery and third-party integrations are not covered by those tests.

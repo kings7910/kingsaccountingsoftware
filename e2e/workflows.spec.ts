@@ -272,3 +272,31 @@ test("owner imports, matches, and locks a bank statement reconciliation",async({
  const{data:reconciliation,error}=await admin.from("reconciliations").select("status,locked_at,rows:imported_transactions(count)").eq("company_id",company.id).single();if(error)throw error;
  expect(reconciliation.status).toBe("completed");expect(reconciliation.locked_at).toBeTruthy();expect(reconciliation.rows[0].count).toBe(2);
 });
+
+test("audit history pages through tied timestamps and exports filtered older events",async({page})=>{
+ const owner=await createUser("Audit Paging Owner");
+ const company=await insert("companies",{legal_name:"Audit Paging Test",display_name:"Audit Paging Test",created_by:owner.id});
+ await insert("company_memberships",{company_id:company.id,user_id:owner.id,role:"owner"});
+ const createdAt="2026-01-01T12:00:00.123456Z";
+ const rows=Array.from({length:510},(_,i)=>({id:`00000000-0000-4000-8000-${String(i+1).padStart(12,"0")}`,company_id:company.id,actor_id:owner.id,action:"journal.posted",record_type:"journal_entry",record_id:crypto.randomUUID(),after_data:{reference:`PAGING-${String(i+1).padStart(4,"0")}`},created_at:createdAt}));
+ // Use a random UUID prefix to keep repeated local test runs independent.
+ const prefix=crypto.randomUUID().slice(0,8);rows.forEach(row=>{row.id=prefix+row.id.slice(8)});
+ const {error}=await admin.from("audit_logs").insert(rows);if(error)throw error;
+ await login(page,owner.email);await expect(page).toHaveURL(/\/workspace/);
+ await page.getByRole("navigation",{name:"Primary navigation"}).getByRole("button",{name:"Audit log",exact:true}).click();
+ await expect(page.getByText(/250 loaded/)).toBeVisible();
+ await expect(page.getByText(/Search and export include only loaded events/)).toBeVisible();
+ await page.getByRole("button",{name:"Load older events",exact:true}).click();
+ await expect(page.getByText(/500 loaded/)).toBeVisible();
+ await page.getByRole("button",{name:"Load older events",exact:true}).click();
+ await expect(page.getByText(/All available events are loaded/)).toBeVisible();
+ await page.getByLabel("Search loaded audit events").fill("PAGING-");
+ await expect(page.getByText(/510 matching events/)).toBeVisible();
+ await page.getByLabel("Search loaded audit events").fill("PAGING-0001");
+ await expect(page.getByText(/1 matching events/)).toBeVisible();
+ const downloading=page.waitForEvent("download");await page.getByRole("button",{name:"Export CSV",exact:true}).click();
+ const download=await downloading,path=await download.path();expect(path).toBeTruthy();
+ const csv=readFileSync(path!,"utf8");expect(csv).toContain("PAGING-0001");expect(csv).not.toContain("PAGING-0002");
+ await page.setViewportSize({width:390,height:844});
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
+});
