@@ -1,0 +1,13 @@
+.git
+.next
+.vercel
+node_modules
+.env*
+backups
+supabase/.temp
+supabase/.branches
+test-results
+playwright-report
+coverage
+*.tsbuildinfo
+*.log
