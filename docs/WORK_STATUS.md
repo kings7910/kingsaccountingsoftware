@@ -3,6 +3,15 @@
 Updated September 8, 2026.
 
 
+## Invoice document and email release live — September 8, 2026
+
+Supabase CLI authentication was restored with the user's verification code. The hosted dry run identified exactly migration `20260908230815_invoice_documents_delivery.sql`; it was applied to `uxrssvjdbumclzintnri`. Hosted checks confirm migration history, RLS on all three new tables, private credentials/payloads, server-only preparation/claim functions, and authenticated document access. Security/performance advisors report no issues.
+
+Application source `6d24543` (including invoice feature commit `1c3a014`) was pushed and deployed as `dpl_9wEsgxg5zwZ5PGM8NS3pShmEK73t`. Vercel built it successfully with production configuration, and promotion succeeded. The production encryption secret is configured. Deployment uploads explicitly exclude local environment files, database temporary secrets, backups and test artifacts. The earlier local-only and authentication-blocker notes below are historical and resolved. This status record is also committed, pushed and deployed under the standing release instruction.
+
+Local validation remains 237 unit tests, 360 database assertions, all ten browser workflows, TypeScript, lint and production build. No hosted business records were created and no customer email was sent. Each business still needs to connect its verified Resend sender in Settings before sending invoices; automated reminders and delivery/bounce webhooks remain separate work.
+
+
 ## Invoice PDF and business email build — September 8, 2026
 
 Completed the unfinished invoice document/email work in the workspace. Invoice cards now open a PDF download and email panel with recipient review, latest-50 delivery history and retries using the same attempt reference. Settings → Notifications now provides owner/administrator sender setup with encrypted Resend credentials. Issued ledger-backed invoices can be emailed by finance writers; finance readers can download PDF documents. Draft and historical PDFs are identified explicitly. Provider acceptance is distinguished from confirmed delivery; automatic notification preferences remain inactive.
