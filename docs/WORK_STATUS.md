@@ -2,6 +2,14 @@
 
 Updated September 8, 2026.
 
+## Internal accounting release live — September 8, 2026
+
+Supabase CLI authentication was restored with the user's verification code. The production dry run identified exactly the three pending migrations: `20260908212301`, `20260908213200`, and `20260908213538`. All three were applied to `uxrssvjdbumclzintnri` and verified in hosted migration history. Preflight counts showed no companies, income, expenses or settlements. Hosted checks confirm all three journal links, row-level security on customer corrections, and authenticated-only execution for the six public accounting functions. Security/performance advisors report no issues.
+
+Source commit `9ab59f6` is now live as Vercel production deployment `dpl_Cbeb8gpQVR864NDUVVhyCf8quHdC`. Promotion succeeded, and `https://kings-accounting-software-two.vercel.app` resolves to this deployment with READY status. The live health endpoint confirmed database and authentication readiness at 22:02 UTC; AI remains unconfigured. The deployment-specific error-log scan found no logs. No hosted users or business records were created by release verification.
+
+Pre-release validation remains 213 unit tests, 304 database checks, nine browser workflows, lint, TypeScript and production build. The preparation and access-blocker entries below are historical and resolved. Remaining product scope is still listed below; this release does not connect external providers or implement legacy invoice adoption.
+
 ## Internal accounting release preparation — September 8, 2026
 
 Recovered the unfinished local database changes into migration `20260908212301_complete_internal_accounting.sql`. The generated diff was reviewed to remove unrelated extension removal and preserve explicit function privileges. General paid income/expenses and paid settlements now post balanced journals, lock their sources, and support separate reversals. Request IDs protect transaction and settlement save retries. Account administration protects used account numbers/types; accounting-period closure serializes with posting and rejects draft journals.

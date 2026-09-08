@@ -11,8 +11,8 @@ Authorized scope: continue fixing the backend and push the verified release live
 - [x] Account/period/correction audit records and database security checks.
 - [x] Final application/browser verification: lint, TypeScript, build, 213 unit tests, 304 database tests and nine browser workflows.
 - [x] Push source (`9ab59f6`) and stage Vercel build (`dpl_Cbeb8gpQVR864NDUVVhyCf8quHdC`, READY).
-- [ ] Apply three pending production migrations, promote the staged build, and verify live health.
+- [x] Apply three pending production migrations, promote the staged build, and verify live health (22:02 UTC, September 8).
 
-Production Supabase access must be restored before applying migrations or promoting the application. CLI access has no token; the connected app denies access. Vercel and GitHub access are available.
+Supabase CLI access was restored. All three migrations are applied to production, and deployment `dpl_Cbeb8gpQVR864NDUVVhyCf8quHdC` is live at https://kings-accounting-software-two.vercel.app. Database/authentication health passes; hosted advisors report no issues and the deployment error scan found no logs.
 
 Remaining product scope: guided legacy invoice reconciliation/adoption, operational cost links to prevent duplicate manual accounting, and wider use of saved company preferences. External bank feeds, payment execution, tax filing, OCR and email delivery require separately configured providers.
