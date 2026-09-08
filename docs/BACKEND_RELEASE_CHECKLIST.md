@@ -25,4 +25,6 @@ Remaining product scope: guided legacy invoice reconciliation/adoption, historic
 - [x] Retry, authorization, closed-period, audit and direct-write database tests.
 - [x] TypeScript, lint, 213 unit tests, 341 database assertions and clean advisors.
 - [x] All ten browser workflows, including concurrent posting requests, and production build.
-- [ ] Push source, apply the reviewed migration, deploy and verify live health.
+- [x] Push source `6d058d4`, apply migration `20260908222741`, promote deployment `dpl_FX9Cpu9KZaiApHxvSPxpSK2vx8ez`, and verify live database/auth health (22:39 UTC).
+
+The operational increment is live at https://kings-accounting-software-two.vercel.app. Hosted advisors and the deployment error-log scan are clean.
