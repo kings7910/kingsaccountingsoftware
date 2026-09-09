@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Bell, Building2, ChevronDown, LogOut, Menu, Plus, Search, X } from "lucide-react";
+import {DragScrollNav} from "./drag-scroll-nav";
 import { navigation } from "@/lib/demo-data";
 import { createClient } from "@/lib/supabase/browser";
 import { useRouter } from "next/navigation";
@@ -64,7 +65,7 @@ export function AppShell({authenticated=false,assistantEnabled=false,userId,comp
 
   return <div className="min-h-screen lg:grid lg:grid-cols-[260px_1fr]">
     <aside className={`fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col bg-[var(--navy)] text-white transition-transform lg:sticky lg:top-0 lg:h-screen lg:w-auto ${menuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
-      <div className="flex h-20 items-center gap-3 border-b border-white/10 px-6">
+      <div className="flex h-20 shrink-0 items-center gap-3 border-b border-white/10 px-6">
         <div className="grid size-10 place-items-center rounded-xl bg-[var(--gold)] font-black text-[var(--navy)]">K</div>
         <div><div className="display text-lg font-extrabold leading-tight">King’s</div><div className="text-[10px] font-bold uppercase tracking-[.2em] text-white/55">Accounting software</div></div>
         <button aria-label="Close menu" className="ml-auto lg:hidden" onClick={()=>setMenuOpen(false)}><X/></button>
@@ -73,9 +74,9 @@ export function AppShell({authenticated=false,assistantEnabled=false,userId,comp
         <div className="grid size-9 place-items-center rounded-lg bg-[var(--teal)]"><Building2 size={18}/></div>
         <div className="min-w-0 flex-1"><div className="truncate text-sm font-bold">{companyName}</div><div className="text-xs text-white/55">Primary company</div></div>
       </div>
-      <nav className="hide-scrollbar flex-1 overflow-y-auto px-3 py-5" aria-label="Primary navigation">
+      <DragScrollNav className="hide-scrollbar flex-1 overflow-y-auto px-3 py-5" aria-label="Primary navigation">
         {allowedNavigation.map(({label,icon:Icon})=><button key={label} onClick={()=>navigate(label)} className={`mb-1 flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-sm font-semibold transition ${active===label?"bg-[var(--teal)] text-white shadow-lg shadow-black/10":"text-white/65 hover:bg-white/7 hover:text-white"}`}><Icon size={18}/>{label}</button>)}
-      </nav>
+      </DragScrollNav>
       <div className="relative border-t border-white/10 p-4"><button onClick={()=>setAccountOpen(value=>!value)} aria-expanded={accountOpen} className="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left hover:bg-white/7"><div className="grid size-9 place-items-center rounded-full bg-[#e8c8a6] text-xs font-black text-[#58351f]">{initials}</div><div className="min-w-0 flex-1"><div className="truncate text-sm font-bold">{userName}</div><div className="capitalize text-xs text-white/50">{role.replaceAll("_"," ")}</div></div><ChevronDown size={15}/></button>{accountOpen&&<div className="absolute bottom-[calc(100%-4px)] left-4 right-4 rounded-xl border border-white/10 bg-[#0f3a49] p-2 shadow-xl">{authenticated?<button onClick={signOut} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold hover:bg-white/10"><LogOut size={16}/>Sign out</button>:<a href="/login" className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold hover:bg-white/10">Sign in to workspace</a>}</div>}</div>
     </aside>
     {menuOpen&&<button className="fixed inset-0 z-40 bg-black/40 lg:hidden" aria-label="Close navigation" onClick={()=>setMenuOpen(false)}/>} 
