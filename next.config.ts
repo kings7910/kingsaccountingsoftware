@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   outputFileTracingIncludes: {"/api/companies/*/invoices/*/pdf": ["./assets/invoice-fonts/DejaVuSans.ttf"], "/workspace": ["./assets/invoice-fonts/DejaVuSans.ttf"]},
   experimental: {
+    serverActions: { bodySizeLimit: "4.25mb" },
     optimizePackageImports: ["lucide-react", "recharts"],
     useTypeScriptCli: false,
   },
