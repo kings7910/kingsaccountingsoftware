@@ -1,5 +1,6 @@
 import "server-only";
 import {createClient} from "@/lib/supabase/server";
+import {defaultInvoiceTemplate,parseInvoiceTemplate} from "./invoice-template";
 import type {InvoiceDocument} from "./invoice-document";
 export async function invoiceDeliveryContext(companyId:string,mode:"read"|"send"|"settings"="read"){
  const s=await createClient();if(!s)throw new Error("Supabase is not configured.");
@@ -12,6 +13,8 @@ export async function invoiceDeliveryContext(companyId:string,mode:"read"|"send"
 }
 export async function loadInvoiceDocument(companyId:string,invoiceId:string){
  const {s}=await invoiceDeliveryContext(companyId);
- const {data,error}=await s.rpc("invoice_document",{target_company_id:companyId,target_invoice_id:invoiceId});
- if(error)throw new Error(error.message);return data as InvoiceDocument;
+ const [document,template]=await Promise.all([s.rpc("invoice_document",{target_company_id:companyId,target_invoice_id:invoiceId}),s.from("invoice_templates").select("settings").eq("company_id",companyId).maybeSingle()]);
+ if(document.error)throw new Error(document.error.message);
+ if(template.error)throw new Error("Unable to load the invoice template.");
+ return {...document.data,template:parseInvoiceTemplate({...defaultInvoiceTemplate,...template.data?.settings})} as InvoiceDocument;
 }

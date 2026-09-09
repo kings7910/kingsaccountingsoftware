@@ -1,4 +1,6 @@
+import type {InvoiceTemplate} from "./invoice-template";
 export type InvoiceDocument={
+ template?:InvoiceTemplate;
  id:string;number:string;issuedOn:string;dueOn:string;status:string;notes:string;subtotal:number;tax:number;discount:number;total:number;
  ledgerManaged:boolean;posted:boolean;company:{name:string;displayName:string};customer:{name:string;email:string;address:Record<string,unknown>|null};
  items:{description:string;quantity:number;unitPrice:number;taxRate:number}[];payments:number;adjustments:number;credits:number;

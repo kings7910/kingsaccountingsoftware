@@ -3,6 +3,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { FileText, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { demoInvoices, Invoice, invoiceAmount, invoiceBalance, InvoiceDraft, invoiceStatuses, InvoiceCursor, InvoiceAllocationDraft, nextInvoiceNumber, validateInvoice, validateInvoiceAllocation } from "@/lib/invoices";
 import { deleteInvoice, listInvoices, saveInvoice, recordInvoiceAllocation, recordInvoiceCorrection, listInvoicePaymentAccounts, loadInvoiceDefaults } from "@/app/actions/invoices";
+import {InvoiceTemplateEditor} from "./invoice-template-editor";
 import {InvoiceDelivery} from "./invoice-delivery";
 const storageKey="kings-invoices-v1",currency=new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"});
 const newItem=()=>({id:crypto.randomUUID(),description:"",quantity:1,unitPrice:0,taxRate:0});
@@ -10,6 +11,7 @@ const blank=():InvoiceDraft=>({customer:"",issuedOn:new Date().toISOString().sli
 const message=(cause:unknown)=>cause instanceof Error?cause.message:"Unable to complete this request.";
 export function InvoiceWorkspace({openCreate,onCreateClosed,companyId}:{openCreate:boolean;onCreateClosed:()=>void;companyId?:string}){
  const [records,setRecords]=useState<Invoice[]>(companyId?[]:demoInvoices),[loadedKey,setLoadedKey]=useState(companyId?"":"demo"),[loaded,setLoaded]=useState(false);
+ const [templateOpen,setTemplateOpen]=useState(false);
  const [delivery,setDelivery]=useState<string|null>(null);
  const [query,setQuery]=useState(""),[status,setStatus]=useState("All statuses"),[editing,setEditing]=useState<Invoice|null>(null),[allocation,setAllocation]=useState<{invoice:Invoice;kind:"payment"|"credit"|"refund"|"reversal";paymentId?:string}|null>(null);
  const [error,setError]=useState(""),[busy,setBusy]=useState(false),[reload,setReload]=useState(0),[cursor,setCursor]=useState<InvoiceCursor|null>(null);
@@ -25,7 +27,9 @@ export function InvoiceWorkspace({openCreate,onCreateClosed,companyId}:{openCrea
  async function remove(invoice:Invoice){if(invoice.status!=="Draft"||busy||!confirm(`Delete ${invoice.number}?`))return;setBusy(true);try{if(companyId)await deleteInvoice(companyId,invoice.id);setRecords(current=>current.filter(x=>x.id!==invoice.id));setError("")}catch(cause){setError(message(cause))}finally{setBusy(false)}}
  async function loadMore(){if(!companyId||!cursor||busy)return;setBusy(true);try{const page=await listInvoices(companyId,cursor);setRecords(current=>[...current,...page.items.filter(item=>!current.some(x=>x.id===item.id))]);setCursor(page.nextCursor);setError("")}catch(cause){setError(message(cause))}finally{setBusy(false)}}
  if(companyId&&loadedKey!==companyId)return <div className="card p-5" role={error?"alert":"status"}>{error||"Loading invoices…"}{error&&<button className="ml-3 rounded-xl border px-3 py-2" onClick={()=>setReload(x=>x+1)}>Retry</button>}</div>;
+ if(templateOpen&&companyId&&!openCreate)return <InvoiceTemplateEditor key={companyId} companyId={companyId} onBack={()=>setTemplateOpen(false)}/>;
  return <>
+  {companyId&&<div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--line)] bg-white p-4"><div><p className="font-bold">Your invoice design</p><p className="text-sm text-[var(--muted)]">Customize your business information, logo, and PDF template.</p></div><button type="button" onClick={()=>setTemplateOpen(true)} className="rounded-xl border px-4 py-3 text-sm font-bold">Invoice template</button></div>}
   {error&&<p role="alert" className="mb-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</p>}
   <div className="flex flex-wrap gap-2"><div className="relative min-w-[220px] flex-1"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]" size={17}/><input aria-label="Search invoices" value={query} onChange={e=>setQuery(e.target.value)} className="w-full rounded-xl border border-[var(--line)] py-2.5 pl-10 pr-3 text-sm" placeholder="Search loaded invoices or customers…"/></div><select aria-label="Invoice status filter" value={status} onChange={e=>setStatus(e.target.value)} className="rounded-xl border border-[var(--line)] bg-white px-3 text-sm font-bold"><option>All statuses</option>{invoiceStatuses.map(x=><option key={x} value={x}>{x==="Sent"?"Issued":x}</option>)}</select></div>
   {companyId&&<p className="mt-2 text-xs text-[var(--muted)]">{records.length} invoices loaded. Search and filters cover loaded invoices.</p>}

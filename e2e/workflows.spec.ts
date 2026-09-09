@@ -497,3 +497,38 @@ test("operational costs and delivered loads post once into the ledger",async({pa
  const {count}=await admin.from("operational_cost_links").select("id",{count:"exact",head:true}).eq("fuel_entry_id",concurrent.id);expect(count).toBe(1);
  await client.auth.signOut();
 });
+
+test("invoice template business details and logo persist into PDF downloads",async({page})=>{
+ const owner=await createUser("Template Owner");await login(page,owner.email);
+ await expect(page).toHaveURL(/\/onboarding/);
+ await page.getByLabel("Company display name").fill("Template Verification");
+ await page.getByRole("button",{name:"Create workspace",exact:true}).click();await expect(page).toHaveURL(/\/workspace/);
+ const nav=page.getByRole("navigation",{name:"Primary navigation"});await nav.getByRole("button",{name:"Invoices",exact:true}).click();
+ await page.getByRole("button",{name:"Invoice template",exact:true}).click();
+ const editor=page.getByRole("region",{name:"Invoice template editor"});
+ await expect(editor.getByLabel("Business name on invoices")).toHaveValue("Template Verification");
+ await editor.getByLabel("Business name on invoices").fill("Custom Freight LLC");
+ await editor.getByLabel("Business address").fill("123 Business Road\nAtlanta, GA 30301");
+ await editor.getByLabel("Phone number").fill("404-555-0123");
+ await editor.getByLabel("Contact email").fill("billing@example.com");
+ await editor.getByLabel("Website",{exact:true}).fill("www.example.com");
+ await editor.getByLabel("Payment instructions").fill("Please include the invoice number with your payment.");
+ await editor.getByLabel("Footer message").fill("Thank you for choosing Custom Freight.");
+ await editor.getByLabel("Accent color",{exact:true}).fill("#663399");
+ const logo=await page.evaluate(()=>{const canvas=document.createElement("canvas");canvas.width=240;canvas.height=80;const context=canvas.getContext("2d")!;context.fillStyle="#663399";context.fillRect(0,0,240,80);context.fillStyle="white";context.font="bold 28px sans-serif";context.fillText("CUSTOM FREIGHT",8,49);return canvas.toDataURL("image/png").split(",")[1]});
+ await editor.getByLabel("Business logo",{exact:true}).setInputFiles({name:"logo.png",mimeType:"image/png",buffer:Buffer.from(logo,"base64")});
+ await expect(editor.getByRole("img",{name:"Logo on preview invoice"})).toBeVisible();
+ await editor.getByRole("button",{name:"Save template",exact:true}).click();
+ await expect(editor.getByRole("status")).toContainText("Invoice template saved");
+ const previewEvent=page.waitForEvent("download");await editor.getByRole("button",{name:"Preview PDF",exact:true}).click();
+ const preview=await previewEvent;await preview.saveAs("test-results/invoice-template-preview.pdf");
+ const {PDFDocument}=await import("pdf-lib");const previewPdf=await PDFDocument.load(readFileSync((await preview.path())!));expect(previewPdf.getAuthor()).toBe("Custom Freight LLC");
+ await page.setViewportSize({width:390,height:844});await expect.poll(()=>page.locator("aside").evaluate(element=>element.getBoundingClientRect().right)).toBeLessThanOrEqual(0);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);await page.screenshot({path:"test-results/invoice-template-mobile.png",fullPage:true});
+ await page.setViewportSize({width:1440,height:1000});await page.screenshot({path:"test-results/invoice-template-desktop.png",fullPage:true});
+ await editor.getByRole("button",{name:"Back to invoices"}).click();await page.getByRole("button",{name:"Invoice template",exact:true}).click();
+ await expect(editor.getByLabel("Business address")).toHaveValue("123 Business Road\nAtlanta, GA 30301");await expect(editor.getByLabel("Phone number")).toHaveValue("404-555-0123");
+ await editor.getByLabel("Layout").selectOption("classic");await editor.getByRole("button",{name:"Save template",exact:true}).click();await expect(editor.getByRole("status")).toContainText("Invoice template saved");
+ await editor.getByRole("button",{name:"Back to invoices"}).click();
+ await page.getByRole("button",{name:"New invoice",exact:true}).click();const form=page.getByRole("dialog",{name:"Invoice form"});await form.getByLabel("Customer",{exact:true}).fill("Template customer");await form.getByLabel("Line 1 description").fill("Freight service");await form.getByLabel("Unit price",{exact:true}).fill("500");await form.getByRole("button",{name:"Save invoice",exact:true}).click();await expect(form).toHaveCount(0);
+ await page.getByRole("button",{name:"PDF / email",exact:true}).click();const downloadEvent=page.waitForEvent("download");await page.getByRole("button",{name:"Download PDF",exact:true}).click();const download=await downloadEvent;const actual=await PDFDocument.load(readFileSync((await download.path())!));expect(actual.getAuthor()).toBe("Custom Freight LLC");
+});

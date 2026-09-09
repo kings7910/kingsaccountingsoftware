@@ -28,3 +28,11 @@ Recent history displays the latest 50 attempts. Email does not change invoice is
 Email credentials are encrypted with AES-256-GCM and authenticated against the company ID. Credentials and saved payloads have no client read/write grants. The server checks active membership before every action; history uses company-scoped finance RLS. Only the server role may prepare or claim delivery attempts. No API key is returned to the settings form.
 
 Saved messages contain customer information and attached PDFs; include these database records in the organization's retention and backup procedures. Automatic payload cleanup, key rotation tooling and delivery webhooks remain follow-up work.
+
+## Editing your invoice template
+
+Open **Invoices → Invoice template** to customize the business name, multiline address, phone, contact email, website, optional tax/registration number, logo, accent color, layout, payment instructions and footer. Modern adds a color band; Classic uses clean letterhead. The contact email can be a Yahoo address: it is printed on the PDF and is separate from the automatic email sender configuration.
+
+The design preview updates as you edit. **Preview PDF** downloads an exact sample PDF using the unsaved design. **Save template** validates the logo and text with the PDF renderer, then stores the design for your company. PNG and JPEG logos are limited to 300 KB and 4096 × 4096 pixels. Invalid images or unsupported text characters must be corrected before saving.
+
+Owners, administrators and accountants can edit the template. Auditors can view and preview it. Business identity changes here affect invoice documents only; legal company settings and invoice amounts stay as recorded. Saved changes apply to subsequent downloads of existing or new invoices, and to new email attempts. Already prepared email attempts keep their original PDF when retried.

@@ -25,3 +25,18 @@ describe("email provider",()=>{
  it("does not leak provider errors or credentials",async()=>{await expect(sendInvoiceWithResend("secret","attempt",payload,vi.fn().mockResolvedValue(new Response("secret provider detail",{status:403})))).rejects.toMatchObject({uncertain:false,message:"The email provider rejected the credentials or sender domain. Check business email setup."})});
  it("handles lost responses and malformed success responses",async()=>{for(const fetcher of [vi.fn().mockRejectedValue(new Error("network")),vi.fn().mockResolvedValue(Response.json({}))])await expect(sendInvoiceWithResend("key","attempt",payload,fetcher)).rejects.toMatchObject({uncertain:true})});
 });
+
+describe("editable invoice templates",()=>{
+ it("applies the business identity and both layouts to PDFs",async()=>{
+  const {defaultInvoiceTemplate}=await import("@/lib/invoice-template");
+  for(const layout of ["modern","classic"] as const){const pdf=await PDFDocument.load(await renderInvoicePdf({...document,template:{...defaultInvoiceTemplate,businessName:"Custom Transport LLC",address:"12 Main Street\nAtlanta GA 30301",phone:"404-555-0100",email:"contact@example.com",paymentInstructions:"Please pay within 30 days.",layout,accentColor:"#663399"}}));expect(pdf.getAuthor()).toBe("Custom Transport LLC");expect(pdf.getPageCount()).toBeGreaterThan(0)}
+ });
+ it("rejects broken logos before generating an unusable document",async()=>{
+  const {defaultInvoiceTemplate}=await import("@/lib/invoice-template");
+  await expect(renderInvoicePdf({...document,template:{...defaultInvoiceTemplate,logoDataUrl:"data:image/png;base64,YmFk"}})).rejects.toThrow("logo cannot be read");
+ });
+ it("validates logo types, bounded fields and colors",async()=>{
+  const {defaultInvoiceTemplate,parseInvoiceTemplate}=await import("@/lib/invoice-template");
+  for(const patch of [{logoDataUrl:"https://example.com/logo.png"},{logoDataUrl:"data:image/svg+xml;base64,PHN2Zz4="},{accentColor:"red"},{phone:"x".repeat(61)},{email:"not-email"}])expect(()=>parseInvoiceTemplate({...defaultInvoiceTemplate,...patch})).toThrow();
+ });
+});

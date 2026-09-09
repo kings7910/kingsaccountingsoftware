@@ -1,6 +1,15 @@
 # Work status
 
-Updated September 8, 2026.
+Updated September 9, 2026.
+
+
+## Editable invoice templates — September 9, 2026
+
+Invoices now has an Invoice template editor with business name, multiline address, phone, contact email, website, optional registration number, PNG/JPEG logo, accent color, Modern/Classic layouts, payment instructions and footer. The editor includes an immediate design preview and an exact sample PDF download. Save validates the draft through the PDF renderer before persisting it. Saved templates feed actual invoice PDF downloads and new email attachments; retries of previously prepared email keep their frozen document.
+
+Templates are company-scoped in migration `20260909000610_invoice_template_editor.sql`. Active owners, administrators and accountants can edit, and auditors can read/preview. RLS prevents cross-company reads/writes and row transfers. Logos and template sizes are bounded. The migration preserves extensions and explicit privileges; a clean shadow build matches the local schema. Contact email on a PDF is independent of the configured email sender, so a Yahoo contact address can be printed without claiming Resend sender verification.
+
+Unit verification covers both PDF layouts, custom identity, invalid logos and input bounds, authorization, read failures, and preview-without-save behavior. Database checks cover template persistence, role restrictions, inactive membership, tenant isolation and size limits. Browser verification covers logo upload, save/reopen, layout change, preview PDF and an actual invoice PDF, with desktop/mobile screenshots. See [Invoice delivery](INVOICE_DELIVERY.md) for the editor workflow and document behavior.
 
 
 ## Invoice document and email release live — September 8, 2026
