@@ -15,3 +15,6 @@ supabase/.branches/
 
 playwright-report/
 test-results/
+
+# Generated from pinned OCR packages during build
+/public/receipt-ocr/

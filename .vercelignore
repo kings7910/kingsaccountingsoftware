@@ -11,3 +11,5 @@ playwright-report
 coverage
 *.tsbuildinfo
 *.log
+
+public/receipt-ocr

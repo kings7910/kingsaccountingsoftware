@@ -14,6 +14,7 @@ export default defineConfig([
     ".next/**",
     ".vercel/**",
     "node_modules/**",
+    "public/receipt-ocr/**",
     "coverage/**",
     "next-env.d.ts",
   ]),

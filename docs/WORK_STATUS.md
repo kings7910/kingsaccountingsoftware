@@ -3,6 +3,16 @@
 Updated September 9, 2026.
 
 
+## Receipt auto-fill verification — September 9, 2026
+
+Fuel forms now read English JPEG/PNG/WebP receipt photos locally with a browser OCR worker. Users review and explicitly apply suggested vendor, date (office form), total and gallons. Tax is displayed for review without adding it again; conflicting totals and detected non-USD amounts are left for manual entry. Office saves attach the scanned photo and preserve a saved fuel entry if only attachment upload fails. Drivers explicitly select the matching submitted fuel entry before attaching; photos remain in page memory until uploaded, separate from the durable mileage/fuel queue.
+
+OCR assets are generated from pinned packages during builds and served by this site. No OCR provider credentials or external image-processing requests are required. Verification includes 271 passing unit tests plus three subsequent worker-startup/cancellation tests, lint, TypeScript, a production build, and four browser workflows covering actual OCR, both fuel receipt paths, sidebar drag, and private attachment persistence. The actual OCR test confirms that recognition makes no external HTTP requests. Remaining receipt scope includes PDF text recognition, broader language/currency support, offline photo persistence, and more extensive real-world receipt accuracy evaluation. See [Receipt auto-fill](RECEIPT_AUTOFILL.md).
+
+## Invoice template release live — September 9, 2026
+
+Source `926c741` is committed and pushed. Migration `20260909000610_invoice_template_editor.sql` was applied to hosted project `uxrssvjdbumclzintnri`, with migration history and RLS verified. Vercel deployment `dpl_HtJPhXHZEWd36xYw5KPRfsxRyr2A` is READY and aliased to the public site. Live database/authentication health and unsigned login browser checks passed. Verification covered 257 unit tests, ten template database assertions, lint, production build, and the authenticated template browser workflow, including saved logos, mobile layout, and actual invoice PDFs. No customer invoice email was sent.
+
 ## Editable invoice templates — September 9, 2026
 
 Invoices now has an Invoice template editor with business name, multiline address, phone, contact email, website, optional registration number, PNG/JPEG logo, accent color, Modern/Classic layouts, payment instructions and footer. The editor includes an immediate design preview and an exact sample PDF download. Save validates the draft through the PDF renderer before persisting it. Saved templates feed actual invoice PDF downloads and new email attachments; retries of previously prepared email keep their frozen document.
