@@ -1,0 +1,15 @@
+import {mkdir,copyFile,readdir} from "node:fs/promises";
+import {createRequire} from "node:module";
+import {dirname,join} from "node:path";
+const require=createRequire(import.meta.url);
+const target=join(process.cwd(),"public/receipt-ocr/7.0.0");
+await mkdir(target,{recursive:true});
+const tesseract=dirname(require.resolve("tesseract.js/package.json"));
+const core=dirname(require.resolve("tesseract.js-core/package.json"));
+const english=dirname(require.resolve("@tesseract.js-data/eng/package.json"));
+await copyFile(join(tesseract,"dist/worker.min.js"),join(target,"worker.min.js"));
+for(const file of await readdir(core))if(file.startsWith("tesseract-core")&&(file.endsWith(".js")||file.endsWith(".wasm")))await copyFile(join(core,file),join(target,file));
+await copyFile(join(english,"4.0.0_best_int/eng.traineddata.gz"),join(target,"eng.traineddata.gz"));
+await copyFile(join(tesseract,"LICENSE.md"),join(target,"TESSERACT-LICENSE.txt"));
+await copyFile(join(core,"LICENSE"),join(target,"CORE-LICENSE.txt"));
+console.log("Prepared local receipt text-recognition assets.");

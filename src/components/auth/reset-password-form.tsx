@@ -1,0 +1,12 @@
+"use client";
+
+import { FormEvent, useState } from "react";
+import { CheckCircle2, KeyRound } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/browser";
+
+export function ResetPasswordForm() {
+  const router = useRouter(); const [busy,setBusy]=useState(false); const [error,setError]=useState(""); const [complete,setComplete]=useState(false);
+  async function submit(event:FormEvent<HTMLFormElement>){event.preventDefault();setBusy(true);setError("");const data=new FormData(event.currentTarget);const password=String(data.get("password")||"");const confirmation=String(data.get("confirmation")||"");if(password!==confirmation){setError("Passwords do not match.");setBusy(false);return;}const supabase=createClient();const result=supabase?await supabase.auth.updateUser({password}):{error:new Error("Database configuration is unavailable.")};if(result.error){setError(result.error.message);setBusy(false);return;}setComplete(true);setBusy(false);setTimeout(()=>{router.push("/workspace");router.refresh()},1200)}
+  return <main className="grid min-h-screen place-items-center bg-[var(--navy)] p-4"><section className="w-full max-w-md rounded-3xl bg-white p-7 shadow-2xl sm:p-10"><div className="grid size-12 place-items-center rounded-2xl bg-[var(--teal-light)] text-[var(--teal)]">{complete?<CheckCircle2/>:<KeyRound/>}</div><h1 className="display mt-6 text-3xl font-extrabold text-[var(--navy)]">{complete?"Password updated":"Choose a new password"}</h1>{complete?<p role="status" className="mt-3 text-sm text-[var(--muted)]">Taking you back to your workspace…</p>:<form onSubmit={submit} className="mt-7 space-y-5"><label className="block text-sm font-bold">New password<input name="password" required minLength={8} type="password" autoComplete="new-password" className="mt-2 w-full rounded-xl border border-[var(--line)] p-3"/></label><label className="block text-sm font-bold">Confirm new password<input name="confirmation" required minLength={8} type="password" autoComplete="new-password" className="mt-2 w-full rounded-xl border border-[var(--line)] p-3"/></label>{error&&<p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</p>}<button disabled={busy} className="w-full rounded-xl bg-[var(--teal)] p-3.5 font-bold text-white disabled:opacity-50">{busy?"Updating…":"Update password"}</button></form>}</section></main>;
+}

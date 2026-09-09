@@ -1,0 +1,13 @@
+export type AuditCursor={id:string;createdAt:string};
+export type AuditPage={events:AuditEvent[];nextCursor:AuditCursor|null};
+export type AuditEvent={id:string;occurredAt:string;actor:string;action:string;entityType:string;entityReference:string;summary:string;ipAddress:string;before:Record<string,unknown>|null;after:Record<string,unknown>|null};
+export const demoAuditEvents:AuditEvent[]=[
+ {id:"evt-1",occurredAt:"2026-09-04T10:22:00Z",actor:"Kendra Williams",action:"approval.approved",entityType:"Receipt",entityReference:"RCT-0841",summary:"Approved receipt submission",ipAddress:"192.0.2.18",before:{status:"Pending"},after:{status:"Approved",reviewer:"Kendra Williams"}},
+ {id:"evt-2",occurredAt:"2026-09-04T09:15:00Z",actor:"Andre Cole",action:"journal.posted",entityType:"Journal entry",entityReference:"JE-1042",summary:"Posted balanced journal entry",ipAddress:"192.0.2.24",before:{status:"Draft"},after:{status:"Posted",debits:31284,credits:31284}},
+ {id:"evt-3",occurredAt:"2026-09-03T18:25:00Z",actor:"Dana Brooks",action:"mileage.submitted",entityType:"Mileage log",entityReference:"MILE-229",summary:"Submitted mileage log for approval",ipAddress:"198.51.100.41",before:null,after:{miles:252,status:"Pending"}},
+ {id:"evt-4",occurredAt:"2026-09-03T14:20:00Z",actor:"Maya Chen",action:"load.updated",entityType:"Load",entityReference:"LD-2840",summary:"Changed load status to At delivery",ipAddress:"192.0.2.31",before:{status:"In transit"},after:{status:"At delivery"}},
+ {id:"evt-5",occurredAt:"2026-09-02T12:00:00Z",actor:"Kendra Williams",action:"team.invited",entityType:"Team member",entityReference:"dana@kingstransport.com",summary:"Invited team member with Driver role",ipAddress:"192.0.2.18",before:null,after:{role:"driver",status:"Invited"}},
+];
+const csvCell=(value:unknown)=>{const raw=typeof value==="string"?value:JSON.stringify(value??"");const text=/^[\s\u0000-\u001f]*[=+@-]/.test(raw)||/^[\t\r\n]/.test(raw)?`'${raw}`:raw;return /[",\r\n]/.test(text)?`"${text.replaceAll('"','""')}"`:text};
+export function auditToCsv(events:AuditEvent[]){return [["Occurred at","Actor","Action","Entity type","Reference","Summary","IP address","Before","After"],...events.map(x=>[x.occurredAt,x.actor,x.action,x.entityType,x.entityReference,x.summary,x.ipAddress,x.before,x.after])].map(row=>row.map(csvCell).join(",")).join("\n")}
+export function filterAuditEvents(events:AuditEvent[],query:string,action:string){const q=query.trim().toLowerCase();return events.filter(x=>(action==="All"||x.action.split(".")[0]===action)&&(!q||`${x.actor} ${x.action} ${x.entityType} ${x.entityReference} ${x.summary}`.toLowerCase().includes(q))).sort((a,b)=>b.occurredAt.localeCompare(a.occurredAt))}

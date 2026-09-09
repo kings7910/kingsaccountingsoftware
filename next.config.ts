@@ -2,7 +2,12 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
-  experimental: { optimizePackageImports: ["lucide-react", "recharts"] },
+  outputFileTracingIncludes: {"/api/companies/*/invoices/*/pdf": ["./assets/invoice-fonts/DejaVuSans.ttf"], "/workspace": ["./assets/invoice-fonts/DejaVuSans.ttf"]},
+  experimental: {
+    serverActions: { bodySizeLimit: "4.25mb" },
+    optimizePackageImports: ["lucide-react", "recharts"],
+    useTypeScriptCli: false,
+  },
   async headers() {
     return [{
       source: "/(.*)",

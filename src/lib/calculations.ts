@@ -39,3 +39,10 @@ export function routeProfit(revenue: number, expenses: number, miles: number) {
     costPerMile: miles > 0 ? roundMoney(expenses / miles) : 0,
   };
 }
+
+export function periodChange(current: number, previous: number) {
+  if (!Number.isFinite(current) || !Number.isFinite(previous)) throw new Error("Period totals must be finite numbers");
+  if (previous === 0) return current === 0 ? "No change" : "New this month";
+  const percent = Math.abs((current - previous) / previous * 100);
+  return `${current >= previous ? "+" : "−"}${percent.toFixed(1)}%`;
+}

@@ -1,0 +1,12 @@
+begin;select plan(5);
+insert into auth.users(id,aud,role,email,encrypted_password,raw_app_meta_data,raw_user_meta_data) values('00000000-0000-0000-0000-000000000021','authenticated','authenticated','dispatch@test.local','','{}','{}'),('00000000-0000-0000-0000-000000000022','authenticated','authenticated','load-driver@test.local','','{}','{}');
+insert into public.companies(id,legal_name,display_name,created_by) values('10000000-0000-0000-0000-000000000021','Load Test LLC','Load Test','00000000-0000-0000-0000-000000000021');
+insert into public.company_memberships(company_id,user_id,role) values('10000000-0000-0000-0000-000000000021','00000000-0000-0000-0000-000000000021','dispatcher'),('10000000-0000-0000-0000-000000000021','00000000-0000-0000-0000-000000000022','driver');
+set local role authenticated;set local request.jwt.claim.sub='00000000-0000-0000-0000-000000000021';
+select lives_ok($$select * from public.save_load('10000000-0000-0000-0000-000000000021',null,'Atlanta, GA','Dallas, TX','BlueLine','Marcus Hill','204',4850,842,'2026-09-03','2026-09-04','in_transit')$$,'dispatcher creates load atomically');
+select is((select count(*) from public.loads where company_id='10000000-0000-0000-0000-000000000021'),1::bigint,'load created');
+select is((select count(*) from public.routes where company_id='10000000-0000-0000-0000-000000000021'),1::bigint,'route created');
+select is((select count(*) from public.trucks where company_id='10000000-0000-0000-0000-000000000021'),1::bigint,'truck resolved or created');
+set local request.jwt.claim.sub='00000000-0000-0000-0000-000000000022';
+select throws_ok($$select * from public.save_load('10000000-0000-0000-0000-000000000021',null,'A','B','Customer','Driver','1',1,1,'2026-09-03','2026-09-04','planned')$$,'P0001','Dispatch access required','driver cannot create loads');
+select * from finish();rollback;

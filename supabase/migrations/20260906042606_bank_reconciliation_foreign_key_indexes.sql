@@ -1,0 +1,2 @@
+create index bank_statement_imports_imported_by_idx on public.bank_statement_imports(imported_by);
+create index imported_transactions_batch_idx on public.imported_transactions(company_id,import_batch_id);
